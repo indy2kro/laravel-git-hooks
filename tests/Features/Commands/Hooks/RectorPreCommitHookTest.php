@@ -19,6 +19,8 @@ beforeEach(
         $property = $reflection->getProperty('stty');
         $property->setAccessible(true);
         $property->setValue(true);
+
+        $this->mockSymfonyStyleOnCommand(RectorPreCommitHook::class);
     }
 );
 

@@ -6,6 +6,7 @@ use Enlightn\Enlightn\EnlightnServiceProvider;
 use Igorsgm\GitHooks\Facades\GitHooks;
 use Igorsgm\GitHooks\GitHooksServiceProvider;
 use Igorsgm\GitHooks\Tests\Traits\WithTmpFiles;
+use Mockery;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
@@ -109,5 +110,20 @@ class TestCase extends \Orchestra\Testbench\TestCase
     {
         $this->gitInit()
             ->initializeTempDirectory(base_path('.git'));
+    }
+
+    protected function mockSymfonyStyleOnCommand(string $commandClass, bool $confirmDefault = true): void
+    {
+        $this->app->extend($commandClass, function ($command) use ($confirmDefault) {
+            $style = Mockery::mock(\Symfony\Component\Console\Style\SymfonyStyle::class)
+                ->makePartial()
+                ->shouldAllowMockingProtectedMethods();
+
+            $style->shouldReceive('confirm')->andReturn($confirmDefault);
+
+            $command->io = $style;
+
+            return $command;
+        });
     }
 }
