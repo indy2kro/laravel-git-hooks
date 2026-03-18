@@ -241,6 +241,8 @@ jobs:
         include:
           - laravel: 13.*
             testbench: 11.*
+            pest: ^4.4
+            pest-plugin-laravel: ^4.1
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - ${{ matrix.dependency-stability }} - ${{ matrix.operating-system}}
 
@@ -293,7 +295,7 @@ jobs:
       - name: Install Laravel Dependencies
         if: steps.vendor-cache.outputs.cache-hit != 'true'
         run: |
-          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer require --dev "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" "pestphp/pest:${{ matrix.pest }}" "pestphp/pest-plugin-laravel:${{ matrix.pest-plugin-laravel }}" --no-interaction --no-update
           composer update --${{ matrix.dependency-stability }} --prefer-dist --no-interaction
 
       - name: Update Dependencies with latest stable
