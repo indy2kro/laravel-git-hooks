@@ -188,7 +188,7 @@ return [
             'sort_algorithm' => 'none',
         ],
         DeclareStrictTypesFixer::class => [
-            'strict_types' => true,
+            'preserve_existing_declaration' => false,
         ],
         FullyQualifiedStrictTypesFixer::class => [
             'import_symbols' => true,
