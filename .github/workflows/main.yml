@@ -26,71 +26,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
+        php: ['8.2', '8.3', '8.4', '8.5']
+        laravel: ['11', '12', '13']
+        exclude:
           - php: '8.2'
-            laravel: '11.*'
-            testbench: '9.*'
-            pest: '^3.0'
-            pest-plugin-laravel: '^3.0'
-          - php: '8.3'
-            laravel: '11.*'
-            testbench: '9.*'
-            pest: '^3.0'
-            pest-plugin-laravel: '^3.0'
-          - php: '8.4'
-            laravel: '11.*'
-            testbench: '9.*'
-            pest: '^3.0'
-            pest-plugin-laravel: '^3.0'
-          - php: '8.5'
-            laravel: '11.*'
-            testbench: '9.*'
-            pest: '^3.0'
-            pest-plugin-laravel: '^3.0'
-          - php: '8.2'
-            laravel: '12.*'
-            testbench: '10.*'
-            pest: '^3.0'
-            pest-plugin-laravel: '^3.1'
-          - php: '8.3'
-            laravel: '12.*'
-            testbench: '10.*'
-            pest: '^3.0'
-            pest-plugin-laravel: '^3.1'
-          - php: '8.4'
-            laravel: '12.*'
-            testbench: '10.*'
-            pest: '^3.0'
-            pest-plugin-laravel: '^3.1'
-          - php: '8.5'
-            laravel: '12.*'
-            testbench: '10.*'
-            pest: '^3.0'
-            pest-plugin-laravel: '^3.1'
-          - php: '8.3'
-            laravel: '13.*'
-            testbench: '11.*'
-            pest: '^4.4.1'
-            pest-plugin-laravel: '^4.1'
-          - php: '8.4'
-            laravel: '13.*'
-            testbench: '11.*'
-            pest: '^4.4.1'
-            pest-plugin-laravel: '^4.1'
-          - php: '8.5'
-            laravel: '13.*'
-            testbench: '11.*'
-            pest: '^4.4.1'
-            pest-plugin-laravel: '^4.1'
+            laravel: '13'
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '24.x'
           cache: npm
@@ -109,17 +58,51 @@ jobs:
         run: |
           echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
+      - name: Resolve matrix dependency versions
+        id: matrix-versions
+        shell: bash
+        run: |
+          case "${{ matrix.laravel }}" in
+            11)
+              echo "laravel_constraint=11.*" >> "$GITHUB_OUTPUT"
+              echo "testbench_constraint=9.*" >> "$GITHUB_OUTPUT"
+              echo "testbench_key=9" >> "$GITHUB_OUTPUT"
+              echo "pest_constraint=^3.0" >> "$GITHUB_OUTPUT"
+              echo "pest_key=3" >> "$GITHUB_OUTPUT"
+              echo "plugin_constraint=^3.0" >> "$GITHUB_OUTPUT"
+              echo "plugin_key=3" >> "$GITHUB_OUTPUT"
+              ;;
+            12)
+              echo "laravel_constraint=12.*" >> "$GITHUB_OUTPUT"
+              echo "testbench_constraint=10.*" >> "$GITHUB_OUTPUT"
+              echo "testbench_key=10" >> "$GITHUB_OUTPUT"
+              echo "pest_constraint=^3.0" >> "$GITHUB_OUTPUT"
+              echo "pest_key=3" >> "$GITHUB_OUTPUT"
+              echo "plugin_constraint=^3.1" >> "$GITHUB_OUTPUT"
+              echo "plugin_key=3" >> "$GITHUB_OUTPUT"
+              ;;
+            13)
+              echo "laravel_constraint=13.*" >> "$GITHUB_OUTPUT"
+              echo "testbench_constraint=11.*" >> "$GITHUB_OUTPUT"
+              echo "testbench_key=11" >> "$GITHUB_OUTPUT"
+              echo "pest_constraint=^4.4.1" >> "$GITHUB_OUTPUT"
+              echo "pest_key=4" >> "$GITHUB_OUTPUT"
+              echo "plugin_constraint=^4.1" >> "$GITHUB_OUTPUT"
+              echo "plugin_key=4" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
       - name: Cache Composer downloads
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ matrix.php }}-${{ matrix.laravel }}-${{ matrix.testbench }}-${{ matrix.pest }}-${{ matrix.pest-plugin-laravel }}-${{ hashFiles('composer.json') }}
+          key: ${{ runner.os }}-composer-php${{ matrix.php }}-laravel${{ matrix.laravel }}-testbench${{ steps.matrix-versions.outputs.testbench_key }}-pest${{ steps.matrix-versions.outputs.pest_key }}-plugin${{ steps.matrix-versions.outputs.plugin_key }}-${{ hashFiles('composer.json') }}
           restore-keys: |
-            ${{ runner.os }}-composer-${{ matrix.php }}-${{ matrix.laravel }}-${{ matrix.testbench }}-${{ matrix.pest }}-${{ matrix.pest-plugin-laravel }}-
+            ${{ runner.os }}-composer-php${{ matrix.php }}-laravel${{ matrix.laravel }}-testbench${{ steps.matrix-versions.outputs.testbench_key }}-pest${{ steps.matrix-versions.outputs.pest_key }}-plugin${{ steps.matrix-versions.outputs.plugin_key }}-
 
       - name: Install Laravel dependencies
         run: |
-          composer require --dev "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" "pestphp/pest:${{ matrix.pest }}" "pestphp/pest-plugin-laravel:${{ matrix.pest-plugin-laravel }}" --no-interaction --no-update
+          composer require --dev "laravel/framework:${{ steps.matrix-versions.outputs.laravel_constraint }}" "orchestra/testbench:${{ steps.matrix-versions.outputs.testbench_constraint }}" "pestphp/pest:${{ steps.matrix-versions.outputs.pest_constraint }}" "pestphp/pest-plugin-laravel:${{ steps.matrix-versions.outputs.plugin_constraint }}" --no-interaction --no-update
           composer update --prefer-dist --prefer-stable --no-interaction
 
       - name: Set up Git user
