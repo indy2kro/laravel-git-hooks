@@ -104,7 +104,7 @@ class GitHooks
     public function getGitHooksDir(): string
     {
         $basePath = base_path();
-        $output = rtrim((string) shell_exec('git -C '.escapeshellarg($basePath).' rev-parse --show-toplevel --git-common-dir 2>/dev/null'));
+        $output = mb_rtrim((string) shell_exec('git -C '.escapeshellarg($basePath).' rev-parse --show-toplevel --git-common-dir 2>/dev/null'));
         $lines = explode("\n", $output);
 
         if (count($lines) === 2) {
