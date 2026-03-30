@@ -23,7 +23,7 @@ class PestPreCommitHook extends BaseTestRunnerPreCommitHook
 
     protected function getTestCommand(): string
     {
-        return 'run';
+        return '';
     }
 
     protected function getAdditionalParams(): string

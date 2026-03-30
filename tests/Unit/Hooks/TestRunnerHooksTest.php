@@ -23,7 +23,7 @@ describe('Test Runner Hooks', function () {
 
             expect($hook->analyzerCommand())
                 ->toContain('vendor/bin/pest')
-                ->toContain('run');
+                ->not->toContain(' run ');
         });
 
         test('has no fixer command', function () {

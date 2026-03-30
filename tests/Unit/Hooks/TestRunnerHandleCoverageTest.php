@@ -179,6 +179,7 @@ describe('Test Runner Handle Coverage', function () {
 
             // Create a temporary .test.ts file in the tests/ directory so Vitest can find it
             $tempTestFile = base_path('tests/TempVitestCoverageTest.test.ts');
+            @mkdir(dirname($tempTestFile), 0755, true);
             file_put_contents($tempTestFile, '// temp test file for coverage');
 
             try {
@@ -210,6 +211,7 @@ describe('Test Runner Handle Coverage', function () {
         test('findTestPattern returns TS test files with AM prefix', function () {
             // Create a temporary .test.ts file in the tests/ directory
             $tempTestFile = base_path('tests/TempVitest.test.ts');
+            @mkdir(dirname($tempTestFile), 0755, true);
             file_put_contents($tempTestFile, '// temp vitest test');
 
             try {

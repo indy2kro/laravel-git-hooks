@@ -242,7 +242,7 @@ describe('Test Runner File Finding Logic', function () {
             $command = $hook->analyzerCommand();
 
             expect($command)->toContain('pest');
-            expect($command)->toContain('run');
+            expect($command)->not->toContain(' run ');
         });
 
         test('PHPUnit command structure is correct', function () {
