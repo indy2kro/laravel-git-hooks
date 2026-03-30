@@ -26,22 +26,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.2', '8.3', '8.4', '8.5']
-        laravel: ['11', '12', '13']
+        php: ["8.2", "8.3", "8.4", "8.5"]
+        laravel: ["11", "12", "13"]
         exclude:
-          - php: '8.2'
-            laravel: '13'
+          - php: "8.2"
+            laravel: "13"
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '24.x'
+          node-version: "24.x"
           cache: npm
           cache-dependency-path: package-lock.json
 
@@ -93,7 +93,7 @@ jobs:
           esac
 
       - name: Cache Composer downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-php${{ matrix.php }}-laravel${{ matrix.laravel }}-testbench${{ steps.matrix-versions.outputs.testbench_key }}-pest${{ steps.matrix-versions.outputs.pest_key }}-plugin${{ steps.matrix-versions.outputs.plugin_key }}-${{ hashFiles('composer.json') }}
