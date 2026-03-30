@@ -1,7 +1,0 @@
-Note: Using configuration file D:\www\laravel-git-hooks\phpstan.neon.
-  0/50 [>---------------------------]   0%[1G[2K 20/50 [===========>----------------]  40%[1G[2K 40/50 [======================>-----]  80%[1G[2K 50/50 [============================] 100%
-
-D:\www\laravel-git-hooks\src\Console\Commands\Hooks\BaseCodeAnalyzerPreCommitHook.php:74:Cannot cast mixed to int.
-D:\www\laravel-git-hooks\src\Console\Commands\Hooks\BaseCodeAnalyzerPreCommitHook.php:144:Parameter #1 $callback of function array_map expects (callable(mixed): mixed)|null, 'strval' given.
-D:\www\laravel-git-hooks\src\HooksPipeline.php:74:Call to function assert() with true will always evaluate to true.
-D:\www\laravel-git-hooks\src\HooksPipeline.php:74:Call to function is_object() with object will always evaluate to true.

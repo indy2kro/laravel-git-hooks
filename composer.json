@@ -52,12 +52,14 @@
     },
     "scripts": {
         "test": "vendor/bin/pest",
+        "test:acceptance": "vendor/bin/pest --configuration phpunit-acceptance.xml",
         "test-coverage": "XDEBUG_MODE=coverage ./vendor/bin/pest --coverage",
         "lint": "vendor/bin/pint --test src config",
         "lint:fix": "vendor/bin/pint src config",
         "analyze": "vendor/bin/phpstan --memory-limit=2G",
         "rector:check": "vendor/bin/rector process --dry-run",
         "rector:fix": "vendor/bin/rector process",
+        "test:acceptance:cleanup": "php -r \"require 'vendor/autoload.php'; Igorsgm\\\\GitHooks\\\\Tests\\\\Acceptance\\\\ToolSandbox::cleanupAll(); echo 'Acceptance sandbox cleaned up.\\n';\"",
         "qa": [
             "@lint",
             "@analyze",
