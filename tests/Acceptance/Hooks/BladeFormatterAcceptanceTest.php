@@ -44,3 +44,81 @@ test('Blade Formatter fails when staged blade file is not formatted', function (
         ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
         ->assertExitCode(1);
 });
+
+test('Blade Formatter passes when no blade files are staged', function () use ($projectRoot, $sandbox) {
+    $this->config->set('git-hooks.code_analyzers.blade_formatter', [
+        'path' => $sandbox->binaryPath(),
+        'config' => '',
+        'file_extensions' => '/\.blade\.php$/',
+        'run_in_docker' => false,
+        'docker_container' => '',
+    ]);
+    $this->config->set('git-hooks.pre-commit', [BladeFormatterPreCommitHook::class]);
+
+    $this->makeTempFile(
+        'ClassWithFixableIssues.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithFixableIssues.php');
+
+    $this->artisan('git-hooks:pre-commit')
+        ->doesntExpectOutputToContain('Blade Formatter Failed')
+        ->assertSuccessful();
+});
+
+test('Blade Formatter auto-fixes staged blade file when automatically_fix_errors is enabled', function () use ($projectRoot, $sandbox) {
+    $this->config->set('git-hooks.code_analyzers.blade_formatter', [
+        'path' => $sandbox->binaryPath(),
+        'config' => '',
+        'file_extensions' => '/\.blade\.php$/',
+        'run_in_docker' => false,
+        'docker_container' => '',
+    ]);
+    $this->config->set('git-hooks.pre-commit', [BladeFormatterPreCommitHook::class]);
+    $this->config->set('git-hooks.automatically_fix_errors', true);
+
+    $this->makeTempFile(
+        'fixable-blade-file.blade.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/fixable-blade-file.blade.php')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/fixable-blade-file.blade.php');
+
+    $this->artisan('git-hooks:pre-commit')
+        ->expectsOutputToContain('Blade Formatter Failed')
+        ->expectsOutputToContain('COMMIT FAILED')
+        ->assertExitCode(0);
+});
+
+test('Blade Formatter skips non-blade files staged alongside blade file with issues', function () use ($projectRoot, $sandbox) {
+    $this->config->set('git-hooks.code_analyzers.blade_formatter', [
+        'path' => $sandbox->binaryPath(),
+        'config' => '',
+        'file_extensions' => '/\.blade\.php$/',
+        'run_in_docker' => false,
+        'docker_container' => '',
+    ]);
+    $this->config->set('git-hooks.pre-commit', [BladeFormatterPreCommitHook::class]);
+
+    $this->makeTempFile(
+        'fixable-blade-file.blade.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/fixable-blade-file.blade.php')
+    );
+    $this->makeTempFile(
+        'ClassWithFixableIssues.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')
+        ->andReturn("AM temp/fixable-blade-file.blade.php\nAM temp/ClassWithFixableIssues.php");
+
+    $this->artisan('git-hooks:pre-commit')
+        ->expectsOutputToContain('Blade Formatter Failed')
+        ->doesntExpectOutputToContain('ClassWithFixableIssues.php')
+        ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
+        ->assertExitCode(1);
+});

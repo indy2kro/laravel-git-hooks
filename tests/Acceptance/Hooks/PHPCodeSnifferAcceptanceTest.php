@@ -72,3 +72,37 @@ test('PHP_CodeSniffer passes when no PHP files are staged', function () use ($pr
         ->doesntExpectOutputToContain('PHP_CodeSniffer Failed')
         ->assertSuccessful();
 });
+
+test('PHP_CodeSniffer skips non-PHP files staged alongside PHP file with issues', function () use ($projectRoot, $sandbox) {
+    $phpcsPath = $sandbox->binaryPath();
+    $phpcbfPath = dirname($phpcsPath).DIRECTORY_SEPARATOR.'phpcbf';
+
+    $this->config->set('git-hooks.code_analyzers.php_code_sniffer', [
+        'phpcs_path' => $phpcsPath,
+        'phpcbf_path' => $phpcbfPath,
+        'config' => $projectRoot.'/tests/Fixtures/phpcsFixture.xml',
+        'file_extensions' => '/\.php$/',
+        'run_in_docker' => false,
+        'docker_container' => '',
+    ]);
+    $this->config->set('git-hooks.pre-commit', [PHPCodeSnifferPreCommitHook::class]);
+
+    $this->makeTempFile(
+        'ClassWithFixableIssues.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
+    );
+    $this->makeTempFile(
+        'sample.js',
+        file_get_contents($projectRoot.'/tests/Fixtures/sample.js')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')
+        ->andReturn("AM temp/ClassWithFixableIssues.php\nAM temp/sample.js");
+
+    $this->artisan('git-hooks:pre-commit')
+        ->expectsOutputToContain('PHP_CodeSniffer Failed')
+        ->doesntExpectOutputToContain('temp/sample.js')
+        ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
+        ->assertExitCode(1);
+});

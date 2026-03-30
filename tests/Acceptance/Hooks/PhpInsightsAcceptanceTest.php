@@ -27,7 +27,7 @@ test('PHP Insights fails when staged PHP file has quality issues', function () u
         'file_extensions' => '/\.php$/',
         'run_in_docker' => false,
         'docker_container' => '',
-        'additional_params' => '',
+        'additional_params' => '--disable-security-check',
     ]);
     $this->config->set('git-hooks.pre-commit', [PhpInsightsPreCommitHook::class]);
 
@@ -38,6 +38,61 @@ test('PHP Insights fails when staged PHP file has quality issues', function () u
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithFixableIssues.php');
+
+    $this->artisan('git-hooks:pre-commit')
+        ->expectsOutputToContain('PhpInsights Failed')
+        ->expectsOutputToContain('COMMIT FAILED')
+        ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
+        ->assertExitCode(1);
+});
+
+test('PHP Insights passes when no PHP files are staged', function () use ($projectRoot, $sandbox) {
+    $this->config->set('git-hooks.code_analyzers.phpinsights', [
+        'path' => $sandbox->binaryPath(),
+        'config' => $projectRoot.'/tests/Fixtures/phpinsightsFixture.php',
+        'file_extensions' => '/\.php$/',
+        'run_in_docker' => false,
+        'docker_container' => '',
+        'additional_params' => '--disable-security-check',
+    ]);
+    $this->config->set('git-hooks.pre-commit', [PhpInsightsPreCommitHook::class]);
+
+    $this->makeTempFile(
+        'sample.js',
+        file_get_contents($projectRoot.'/tests/Fixtures/sample.js')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/sample.js');
+
+    $this->artisan('git-hooks:pre-commit')
+        ->doesntExpectOutputToContain('PhpInsights Failed')
+        ->assertSuccessful();
+});
+
+test('PHP Insights skips non-PHP files staged alongside PHP files with quality issues', function () use ($projectRoot, $sandbox) {
+    $this->config->set('git-hooks.code_analyzers.phpinsights', [
+        'path' => $sandbox->binaryPath(),
+        'config' => $projectRoot.'/tests/Fixtures/phpinsightsFixture.php',
+        'file_extensions' => '/\.php$/',
+        'run_in_docker' => false,
+        'docker_container' => '',
+        'additional_params' => '--disable-security-check',
+    ]);
+    $this->config->set('git-hooks.pre-commit', [PhpInsightsPreCommitHook::class]);
+
+    $this->makeTempFile(
+        'ClassWithFixableIssues.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
+    );
+    $this->makeTempFile(
+        'sample.js',
+        file_get_contents($projectRoot.'/tests/Fixtures/sample.js')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')
+        ->andReturn("AM temp/ClassWithFixableIssues.php\nAM temp/sample.js");
 
     $this->artisan('git-hooks:pre-commit')
         ->expectsOutputToContain('PhpInsights Failed')

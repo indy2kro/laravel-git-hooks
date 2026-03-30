@@ -48,3 +48,89 @@ test('Pint passes when no PHP files are staged', function ($pintConfiguration) u
         ->doesntExpectOutputToContain('Pint Failed')
         ->assertSuccessful();
 })->with('pintConfiguration')->skip(!file_exists($pintBin), 'Laravel Pint binary not found');
+
+test('Pint auto-fixes staged PHP file when automatically_fix_errors is enabled', function ($pintConfiguration) use ($projectRoot) {
+    $this->config->set('git-hooks.code_analyzers.laravel_pint', $pintConfiguration);
+    $this->config->set('git-hooks.pre-commit', [PintPreCommitHook::class]);
+    $this->config->set('git-hooks.automatically_fix_errors', true);
+
+    $this->makeTempFile(
+        'ClassWithFixableIssues.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithFixableIssues.php');
+
+    $this->artisan('git-hooks:pre-commit')
+        ->expectsOutputToContain('Pint Failed')
+        ->expectsOutputToContain('COMMIT FAILED')
+        ->assertExitCode(0);
+})->with('pintConfiguration')->skip(!file_exists($pintBin), 'Laravel Pint binary not found');
+
+test('Pint fixes staged PHP file when user confirms autofix', function ($pintConfiguration) use ($projectRoot) {
+    $this->config->set('git-hooks.code_analyzers.laravel_pint', $pintConfiguration);
+    $this->config->set('git-hooks.pre-commit', [PintPreCommitHook::class]);
+
+    $this->makeTempFile(
+        'ClassWithFixableIssues.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithFixableIssues.php');
+
+    $this->artisan('git-hooks:pre-commit')
+        ->expectsOutputToContain('Pint Failed')
+        ->expectsOutputToContain('COMMIT FAILED')
+        ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'yes')
+        ->assertExitCode(0);
+})->with('pintConfiguration')->skip(!file_exists($pintBin), 'Laravel Pint binary not found');
+
+test('Pint skips non-PHP files staged alongside PHP file with issues', function ($pintConfiguration) use ($projectRoot) {
+    $this->config->set('git-hooks.code_analyzers.laravel_pint', $pintConfiguration);
+    $this->config->set('git-hooks.pre-commit', [PintPreCommitHook::class]);
+
+    $this->makeTempFile(
+        'ClassWithFixableIssues.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
+    );
+    $this->makeTempFile(
+        'sample.js',
+        file_get_contents($projectRoot.'/tests/Fixtures/sample.js')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')
+        ->andReturn("AM temp/ClassWithFixableIssues.php\nAM temp/sample.js");
+
+    $this->artisan('git-hooks:pre-commit')
+        ->expectsOutputToContain('Pint Failed')
+        ->doesntExpectOutputToContain('temp/sample.js')
+        ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
+        ->assertExitCode(1);
+})->with('pintConfiguration')->skip(!file_exists($pintBin), 'Laravel Pint binary not found');
+
+test('Pint processes multiple PHP files in a single run', function ($pintConfiguration) use ($projectRoot) {
+    $this->config->set('git-hooks.code_analyzers.laravel_pint', $pintConfiguration);
+    $this->config->set('git-hooks.pre-commit', [PintPreCommitHook::class]);
+
+    $this->makeTempFile(
+        'ClassWithFixableIssues.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
+    );
+    $this->makeTempFile(
+        'ClassWithoutFixableIssues.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithoutFixableIssues.php')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')
+        ->andReturn("AM temp/ClassWithFixableIssues.php\nAM temp/ClassWithoutFixableIssues.php");
+
+    $this->artisan('git-hooks:pre-commit')
+        ->expectsOutputToContain('Pint Failed')
+        ->expectsOutputToContain('COMMIT FAILED')
+        ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
+        ->assertExitCode(1);
+})->with('pintConfiguration')->skip(!file_exists($pintBin), 'Laravel Pint binary not found');

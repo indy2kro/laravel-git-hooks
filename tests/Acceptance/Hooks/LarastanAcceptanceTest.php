@@ -47,3 +47,50 @@ test('Larastan passes when staged PHP file has no type errors', function ($laras
         ->doesntExpectOutputToContain('Larastan Failed')
         ->assertSuccessful();
 })->with('larastanConfiguration')->skip(!file_exists($larastanBin), 'PHPStan/Larastan binary not found');
+
+test('Larastan skips non-PHP files staged alongside PHP file with errors', function ($larastanConfiguration) use ($projectRoot) {
+    $this->config->set('git-hooks.code_analyzers.larastan', $larastanConfiguration);
+    $this->config->set('git-hooks.pre-commit', [LarastanPreCommitHook::class]);
+
+    $this->makeTempFile(
+        'ClassWithFixableIssues.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
+    );
+    $this->makeTempFile(
+        'sample.js',
+        file_get_contents($projectRoot.'/tests/Fixtures/sample.js')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')
+        ->andReturn("AM temp/ClassWithFixableIssues.php\nAM temp/sample.js");
+
+    $this->artisan('git-hooks:pre-commit')
+        ->expectsOutputToContain('Larastan Failed')
+        ->doesntExpectOutputToContain('temp/sample.js')
+        ->expectsOutputToContain('COMMIT FAILED')
+        ->assertExitCode(1);
+})->with('larastanConfiguration')->skip(!file_exists($larastanBin), 'PHPStan/Larastan binary not found');
+
+test('Larastan processes multiple PHP files in a single run', function ($larastanConfiguration) use ($projectRoot) {
+    $this->config->set('git-hooks.code_analyzers.larastan', $larastanConfiguration);
+    $this->config->set('git-hooks.pre-commit', [LarastanPreCommitHook::class]);
+
+    $this->makeTempFile(
+        'ClassWithFixableIssues.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
+    );
+    $this->makeTempFile(
+        'ClassWithoutFixableIssues.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithoutFixableIssues.php')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')
+        ->andReturn("AM temp/ClassWithFixableIssues.php\nAM temp/ClassWithoutFixableIssues.php");
+
+    $this->artisan('git-hooks:pre-commit')
+        ->expectsOutputToContain('Larastan Failed')
+        ->expectsOutputToContain('COMMIT FAILED')
+        ->assertExitCode(1);
+})->with('larastanConfiguration')->skip(!file_exists($larastanBin), 'PHPStan/Larastan binary not found');

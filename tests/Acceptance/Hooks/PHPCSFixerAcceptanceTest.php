@@ -48,3 +48,65 @@ test('PHP CS Fixer passes when no PHP files are staged', function ($phpCSFixerCo
         ->doesntExpectOutputToContain('PHP_CS_Fixer Failed')
         ->assertSuccessful();
 })->with('phpcsFixerConfiguration')->skip(!file_exists($phpCsFixerBin), 'PHP CS Fixer binary not found');
+
+test('PHP CS Fixer auto-fixes staged PHP file when automatically_fix_errors is enabled', function ($phpCSFixerConfiguration) use ($projectRoot) {
+    $this->config->set('git-hooks.code_analyzers.php_cs_fixer', $phpCSFixerConfiguration);
+    $this->config->set('git-hooks.pre-commit', [PHPCSFixerPreCommitHook::class]);
+    $this->config->set('git-hooks.automatically_fix_errors', true);
+
+    $this->makeTempFile(
+        'ClassWithFixableIssues.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithFixableIssues.php');
+
+    $this->artisan('git-hooks:pre-commit')
+        ->expectsOutputToContain('PHP_CS_Fixer Failed')
+        ->expectsOutputToContain('COMMIT FAILED')
+        ->assertExitCode(0);
+})->with('phpcsFixerConfiguration')->skip(!file_exists($phpCsFixerBin), 'PHP CS Fixer binary not found');
+
+test('PHP CS Fixer fixes staged PHP file when user confirms autofix', function ($phpCSFixerConfiguration) use ($projectRoot) {
+    $this->config->set('git-hooks.code_analyzers.php_cs_fixer', $phpCSFixerConfiguration);
+    $this->config->set('git-hooks.pre-commit', [PHPCSFixerPreCommitHook::class]);
+
+    $this->makeTempFile(
+        'ClassWithFixableIssues.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithFixableIssues.php');
+
+    $this->artisan('git-hooks:pre-commit')
+        ->expectsOutputToContain('PHP_CS_Fixer Failed')
+        ->expectsOutputToContain('COMMIT FAILED')
+        ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'yes')
+        ->assertExitCode(0);
+})->with('phpcsFixerConfiguration')->skip(!file_exists($phpCsFixerBin), 'PHP CS Fixer binary not found');
+
+test('PHP CS Fixer skips non-PHP files staged alongside PHP file with issues', function ($phpCSFixerConfiguration) use ($projectRoot) {
+    $this->config->set('git-hooks.code_analyzers.php_cs_fixer', $phpCSFixerConfiguration);
+    $this->config->set('git-hooks.pre-commit', [PHPCSFixerPreCommitHook::class]);
+
+    $this->makeTempFile(
+        'ClassWithFixableIssues.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
+    );
+    $this->makeTempFile(
+        'sample.js',
+        file_get_contents($projectRoot.'/tests/Fixtures/sample.js')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')
+        ->andReturn("AM temp/ClassWithFixableIssues.php\nAM temp/sample.js");
+
+    $this->artisan('git-hooks:pre-commit')
+        ->expectsOutputToContain('PHP_CS_Fixer Failed')
+        ->doesntExpectOutputToContain('temp/sample.js')
+        ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
+        ->assertExitCode(1);
+})->with('phpcsFixerConfiguration')->skip(!file_exists($phpCsFixerBin), 'PHP CS Fixer binary not found');

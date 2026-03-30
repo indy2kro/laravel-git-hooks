@@ -66,3 +66,91 @@ test('ESLint passes when staged JS file has no linting errors', function () use 
         ->doesntExpectOutputToContain('ESLint Failed')
         ->assertSuccessful();
 });
+
+test('ESLint auto-fixes staged JS file when automatically_fix_errors is enabled', function () use ($projectRoot, $sandbox) {
+    $this->config->set('git-hooks.code_analyzers.eslint', [
+        'path' => $sandbox->binaryPath(),
+        'config' => $projectRoot.'/tests/Fixtures/.eslintrcFixture.js',
+        'file_extensions' => '/\.(js|jsx|ts|tsx)$/',
+        'run_in_docker' => false,
+        'docker_container' => '',
+        'additional_params' => '',
+    ]);
+    $this->config->set('git-hooks.pre-commit', [ESLintPreCommitHook::class]);
+    $this->config->set('git-hooks.automatically_fix_errors', true);
+
+    $this->makeTempFile(
+        'fixable-js-file.js',
+        file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/fixable-js-file.js');
+
+    $this->artisan('git-hooks:pre-commit')
+        ->expectsOutputToContain('ESLint Failed')
+        ->expectsOutputToContain('COMMIT FAILED')
+        ->assertExitCode(0);
+});
+
+test('ESLint skips non-JS files staged alongside JS file with errors', function () use ($projectRoot, $sandbox) {
+    $this->config->set('git-hooks.code_analyzers.eslint', [
+        'path' => $sandbox->binaryPath(),
+        'config' => $projectRoot.'/tests/Fixtures/.eslintrcFixture.js',
+        'file_extensions' => '/\.(js|jsx|ts|tsx)$/',
+        'run_in_docker' => false,
+        'docker_container' => '',
+        'additional_params' => '',
+    ]);
+    $this->config->set('git-hooks.pre-commit', [ESLintPreCommitHook::class]);
+
+    $this->makeTempFile(
+        'fixable-js-file.js',
+        file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js')
+    );
+    $this->makeTempFile(
+        'ClassWithFixableIssues.php',
+        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')
+        ->andReturn("AM temp/fixable-js-file.js\nAM temp/ClassWithFixableIssues.php");
+
+    $this->artisan('git-hooks:pre-commit')
+        ->expectsOutputToContain('ESLint Failed')
+        ->doesntExpectOutputToContain('ClassWithFixableIssues.php')
+        ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
+        ->assertExitCode(1);
+});
+
+test('ESLint processes multiple JS files in a single run', function () use ($projectRoot, $sandbox) {
+    $this->config->set('git-hooks.code_analyzers.eslint', [
+        'path' => $sandbox->binaryPath(),
+        'config' => $projectRoot.'/tests/Fixtures/.eslintrcFixture.js',
+        'file_extensions' => '/\.(js|jsx|ts|tsx)$/',
+        'run_in_docker' => false,
+        'docker_container' => '',
+        'additional_params' => '',
+    ]);
+    $this->config->set('git-hooks.pre-commit', [ESLintPreCommitHook::class]);
+
+    $this->makeTempFile(
+        'fixable-js-file.js',
+        file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js')
+    );
+    $this->makeTempFile(
+        'clean-js-file.js',
+        file_get_contents($projectRoot.'/tests/Fixtures/clean-js-file.js')
+    );
+
+    GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
+    GitHooks::shouldReceive('getListOfChangedFiles')
+        ->andReturn("AM temp/fixable-js-file.js\nAM temp/clean-js-file.js");
+
+    $this->artisan('git-hooks:pre-commit')
+        ->expectsOutputToContain('ESLint Failed')
+        ->expectsOutputToContain('COMMIT FAILED')
+        ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
+        ->assertExitCode(1);
+});
