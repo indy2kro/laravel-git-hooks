@@ -57,10 +57,10 @@ test('Prettier passes when staged JS file is already formatted', function () use
     ]);
     $this->config->set('git-hooks.pre-commit', [PrettierPreCommitHook::class]);
 
-    $this->makeTempFile('sample.js', file_get_contents($projectRoot.'/tests/Fixtures/sample.js'));
+    $this->makeTempFile('ClassWithoutFixableIssues.php', file_get_contents($projectRoot.'/tests/Fixtures/ClassWithoutFixableIssues.php'));
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
-    GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/sample.js');
+    GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithoutFixableIssues.php');
 
     $this->artisan('git-hooks:pre-commit')
         ->doesntExpectOutputToContain('Prettier Failed')

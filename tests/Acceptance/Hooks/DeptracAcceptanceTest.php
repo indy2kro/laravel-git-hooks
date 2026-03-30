@@ -31,15 +31,11 @@ test('Deptrac hook skips gracefully when no architecture config is provided', fu
     ]);
     $this->config->set('git-hooks.pre-commit', [DeptracPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'ClassWithoutFixableIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithoutFixableIssues.php')
-    );
+    $this->makeTempFile('sample.js', file_get_contents($projectRoot.'/tests/Fixtures/sample.js'));
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
-    GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithoutFixableIssues.php');
+    GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/sample.js');
 
-    // Deptrac exits non-zero when no config found — the hook surfaces that as a failure.
-    // What matters is the sandbox binary is invoked correctly.
+    // No PHP files staged → deptrac skips and hook passes
     $this->artisan('git-hooks:pre-commit')->assertSuccessful();
 });

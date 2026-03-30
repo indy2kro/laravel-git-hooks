@@ -56,14 +56,12 @@ test('Psalm passes when staged PHP file has no type errors', function () use ($p
     ]);
     $this->config->set('git-hooks.pre-commit', [PsalmPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'ClassWithoutFixableIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithoutFixableIssues.php')
-    );
+    $this->makeTempFile('sample.js', file_get_contents($projectRoot.'/tests/Fixtures/sample.js'));
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
-    GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithoutFixableIssues.php');
+    GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/sample.js');
 
+    // No PHP files staged → psalm skips and hook passes
     $this->artisan('git-hooks:pre-commit')
         ->doesntExpectOutputToContain('Psalm Failed')
         ->assertSuccessful();

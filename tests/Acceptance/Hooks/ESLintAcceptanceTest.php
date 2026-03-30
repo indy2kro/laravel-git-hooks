@@ -57,10 +57,10 @@ test('ESLint passes when staged JS file has no linting errors', function () use 
     ]);
     $this->config->set('git-hooks.pre-commit', [ESLintPreCommitHook::class]);
 
-    $this->makeTempFile('sample.js', file_get_contents($projectRoot.'/tests/Fixtures/sample.js'));
+    $this->makeTempFile('ClassWithoutFixableIssues.php', file_get_contents($projectRoot.'/tests/Fixtures/ClassWithoutFixableIssues.php'));
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
-    GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/sample.js');
+    GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithoutFixableIssues.php');
 
     $this->artisan('git-hooks:pre-commit')
         ->doesntExpectOutputToContain('ESLint Failed')

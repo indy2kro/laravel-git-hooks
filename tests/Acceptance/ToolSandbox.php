@@ -142,7 +142,14 @@ final class ToolSandbox
         $composerJson = $this->sandboxDir.DIRECTORY_SEPARATOR.'composer.json';
         if (!file_exists($composerJson)) {
             file_put_contents($composerJson, json_encode(
-                ['require' => new stdClass(), 'config' => ['sort-packages' => true]],
+                [
+                    'require' => new stdClass,
+                    'config' => [
+                        'sort-packages' => true,
+                        // Allow all Composer plugins so sandbox installs work without interaction.
+                        'allow-plugins' => true,
+                    ],
+                ],
                 JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
             ));
         }

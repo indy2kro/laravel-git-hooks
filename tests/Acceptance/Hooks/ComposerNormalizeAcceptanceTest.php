@@ -6,7 +6,7 @@ use Igorsgm\GitHooks\Console\Commands\Hooks\ComposerNormalizePreCommitHook;
 use Igorsgm\GitHooks\Facades\GitHooks;
 use Igorsgm\GitHooks\Tests\Acceptance\ToolSandbox;
 
-$sandbox = ToolSandbox::php('composer-normalize', 'ergebnis/composer-normalize', 'composer-normalize');
+$sandbox = ToolSandbox::php('composer-normalize', 'ergebnis/composer-normalize', 'validate-json');
 
 beforeEach(function () use ($sandbox) {
     try {
