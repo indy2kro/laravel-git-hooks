@@ -154,6 +154,6 @@ Run them with:
 composer test:acceptance
 ```
 
-They run automatically every Sunday via `.github/workflows/acceptance.yml` (PHP 8.2–8.4 × Node 18–22 matrix). You can also trigger the workflow manually from the GitHub Actions tab.
+They run automatically every Sunday via `.github/workflows/acceptance.yml` (PHP 8.2–8.5 × Node 20–24 matrix). You can also trigger the workflow manually from the GitHub Actions tab.
 
 **Do not run acceptance tests as part of normal development** — use `composer test` for the fast unit/feature suite.

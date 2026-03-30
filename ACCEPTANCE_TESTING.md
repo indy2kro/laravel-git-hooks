@@ -10,9 +10,10 @@ The acceptance workflow runs a **PHP × Node matrix**:
 
 | PHP | Node |
 |-----|------|
-| 8.2 | 18, 20, 22 |
-| 8.3 | 18, 20, 22 |
-| 8.4 | 18, 20, 22 |
+| 8.2 | 20, 22, 24 |
+| 8.3 | 20, 22, 24 |
+| 8.4 | 20, 22, 24 |
+| 8.5 | 20, 22, 24 |
 
 You can also trigger it manually from the GitHub Actions tab using `workflow_dispatch`.
 
