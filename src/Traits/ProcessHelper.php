@@ -21,7 +21,7 @@ trait ProcessHelper
     {
         /** @phpstan-ignore-next-line */
         $output = method_exists($this, 'getOutput') ? $this->getOutput() : null;
-
+        /** @var \Illuminate\Console\OutputStyle|null $output */
         if ($output && !$output->isDecorated()) {
             $commands = $this->transformCommands($commands, fn ($value) => $value.' --no-ansi');
         }
@@ -66,17 +66,18 @@ trait ProcessHelper
 
     /**
      * @param  string|array<int, string>  $commands
+     * @param  callable(string): string  $callback
      * @return array<int, string>
      */
     public function transformCommands(string|array $commands, callable $callback): array
     {
-        return array_map(function ($value) use ($callback) {
+        return array_values(array_map(function (string $value) use ($callback): string {
             if (str_starts_with($value, 'chmod')) {
                 return $value;
             }
 
-            return $callback($value);
-        }, (array) $commands);
+            return (string) $callback($value);
+        }, (array) $commands));
     }
 
     /**

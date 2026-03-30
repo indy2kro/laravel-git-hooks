@@ -49,6 +49,7 @@ class HooksPipeline extends Pipeline
                 }
 
                 if (!is_object($pipe)) {
+                    assert(is_string($pipe));
                     $hookParameters = (array) config('git-hooks.'.$this->hook.'.'.$pipe);
 
                     // If the pipe is a string we will parse the string and resolve the class out

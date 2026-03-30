@@ -142,7 +142,7 @@ abstract class BaseCodeAnalyzerPreCommitHook implements CodeAnalyzerPreCommitHoo
     public function setFileExtensions(mixed $fileExtensions): self
     {
         if (is_array($fileExtensions)) {
-            $this->fileExtensions = array_map(fn ($v): string => is_string($v) ? $v : '', $fileExtensions);
+            $this->fileExtensions = array_values(array_map(fn ($v): string => is_string($v) ? $v : '', $fileExtensions));
         } else {
             $this->fileExtensions = is_string($fileExtensions) ? $fileExtensions : '';
         }
