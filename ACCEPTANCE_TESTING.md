@@ -6,18 +6,18 @@ Acceptance tests validate each supported tool end-to-end by running real binarie
 
 Acceptance tests run automatically every **Sunday at 06:00 UTC** via the `acceptance.yml` GitHub Actions workflow. They are intentionally excluded from the main `main.yml` CI workflow (which runs on every push/PR) because they are slow and require real tool binaries.
 
-The acceptance workflow runs a **PHP × Node matrix**:
+The acceptance workflow runs two separate jobs to avoid unnecessary cross-product combinations:
 
-| PHP | Node |
-|-----|------|
-| 8.2 | 20, 22, 24 |
-| 8.3 | 20, 22, 24 |
-| 8.4 | 20, 22, 24 |
-| 8.5 | 20, 22, 24 |
+| Job | PHP version | Node version | Tests run |
+|-----|-------------|--------------|-----------|
+| `acceptance-php` | 8.2, 8.3, 8.4, 8.5 | fixed (none needed) | PHP tool tests |
+| `acceptance-node` | fixed (8.4) | 20, 22, 24 | Node tool tests |
+
+This gives **7 jobs** instead of the naive 4×3=12 cross-product matrix.
 
 You can also trigger it manually from the GitHub Actions tab using `workflow_dispatch`.
 
-Tool sandboxes are cached between weekly runs using `actions/cache` keyed on PHP version, Node version, and the acceptance test file hashes.
+Tool sandboxes are cached between weekly runs using `actions/cache` keyed on PHP or Node version and the acceptance test file hashes.
 
 ## Why Separate from Feature Tests?
 
@@ -51,8 +51,16 @@ Each optional tool is installed in its own isolated temporary directory via `Too
 # Run all acceptance tests (tools install automatically on first run)
 composer test:acceptance
 
-# Or directly:
+# Run only PHP tool tests (Pint, PHPStan, Pest, PHPUnit, Rector, etc.)
+composer test:acceptance:php
+
+# Run only Node tool tests (ESLint, Prettier, BladeFormatter, Vitest)
+composer test:acceptance:node
+
+# Or directly with Pest:
 vendor/bin/pest --configuration phpunit-acceptance.xml
+vendor/bin/pest --configuration phpunit-acceptance.xml --testsuite acceptance-php
+vendor/bin/pest --configuration phpunit-acceptance.xml --testsuite acceptance-node
 
 # Clean up all sandbox directories when done
 composer test:acceptance:cleanup
@@ -113,6 +121,8 @@ Each tool has tests covering the following scenarios:
 
 ### Test Runners (Pest, PHPUnit, Codeception, Vitest)
 - **Skip gracefully** — staged source file with no matching test file causes the hook to pass through without running tests.
+- **Passes** — staged source file with a matching, passing test file runs the test binary successfully.
+- **Fails** — staged source file with a matching, failing test file causes the hook to report failure and exit 1.
 
 ## Fixture Files Used
 
@@ -125,6 +135,7 @@ Each tool has tests covering the following scenarios:
 | `clean-js-file.js` | JS file with single-quoted strings — passes ESLint/Prettier |
 | `fixable-blade-file.blade.php` | Poorly indented Blade template — fails Blade Formatter |
 | `sample.js` | Simple JS file used as a non-matching file in PHP tool tests |
+| `vitestFixture.config.mjs` | Vitest config enabling `globals: true` so test files use `test()`/`expect()` without imports |
 
 ## Adding a New Tool's Acceptance Test
 

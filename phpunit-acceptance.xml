@@ -5,8 +5,11 @@
          colors="true"
          cacheDirectory=".phpunit.cache">
   <testsuites>
-    <testsuite name="Acceptance Test Suite">
-      <directory suffix="Test.php">./tests/Acceptance</directory>
+    <testsuite name="acceptance-php">
+      <directory suffix="Test.php">./tests/Acceptance/PHP</directory>
+    </testsuite>
+    <testsuite name="acceptance-node">
+      <directory suffix="Test.php">./tests/Acceptance/Node</directory>
     </testsuite>
   </testsuites>
   <source>
