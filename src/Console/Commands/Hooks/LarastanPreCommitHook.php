@@ -10,12 +10,15 @@ use Igorsgm\GitHooks\Git\ChangedFiles;
 
 class LarastanPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements CodeAnalyzerPreCommitHook
 {
-    protected string $configParam;
-
     /**
      * Name of the hook
      */
     protected string $name = 'Larastan';
+
+    /**
+     * Config parameter for the analyzer command.
+     */
+    protected string $configParam = '';
 
     /**
      * Analyzes committed files using Larastan
@@ -36,20 +39,13 @@ class LarastanPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements Cod
 
     /**
      * Returns the command to run Larastan analyzer with the given configuration file.
-     * By default, it turns off XDebug if it’s enabled to achieve better performance.
      */
     public function analyzerCommand(): string
     {
-        $additionalParams = (string) config('git-hooks.code_analyzers.larastan.additional_params');
-
-        if (!empty($additionalParams)) {
-            // Removing configuration/c/xdebug parameters from additional parameters to avoid conflicts
-            // because they are already set in the command by default.
-            $additionalParams = (string) preg_replace('/\s*--(configuration|c|xdebug)\b(=\S*)?\s*/', '', (string) $additionalParams);
-        }
+        $additionalParams = $this->additionalParams();
 
         return mb_trim(
-            sprintf('%s analyse %s --xdebug %s', $this->getAnalyzerExecutable(), $this->configParam, $additionalParams)
+            sprintf('%s analyse %s %s', $this->getAnalyzerExecutable(), $this->configParam, $additionalParams)
         );
     }
 
@@ -72,5 +68,24 @@ class LarastanPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements Cod
         $this->validateConfigPath($phpStanConfigFile);
 
         return empty($phpStanConfigFile) ? '' : '--configuration='.$phpStanConfigFile;
+    }
+
+    /**
+     * Retrieves additional parameters for Larastan from the configuration file,
+     * filtering out pre-defined parameters to avoid conflicts.
+     */
+    protected function additionalParams(): string
+    {
+        $additionalParams = (string) config('git-hooks.code_analyzers.larastan.additional_params');
+
+        if (!empty($additionalParams)) {
+            $additionalParams = (string) preg_replace(
+                '/\s*--(configuration|c|xdebug)\b(=\S*)?\s*/',
+                '',
+                $additionalParams
+            );
+        }
+
+        return $additionalParams;
     }
 }

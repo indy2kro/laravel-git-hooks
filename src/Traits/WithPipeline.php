@@ -14,7 +14,7 @@ trait WithPipeline
     /**
      * Hook which is currently running in the Pipeline.
      */
-    public ?Hook $hookExecuting;
+    protected ?Hook $hookExecuting = null;
 
     /**
      * {@inheritDoc}
@@ -71,7 +71,7 @@ trait WithPipeline
     protected function finishHookConsoleTask(): Closure
     {
         return function ($success): void {
-            if (empty($this->hookExecuting)) {
+            if ($this->hookExecuting === null) {
                 return;
             }
 

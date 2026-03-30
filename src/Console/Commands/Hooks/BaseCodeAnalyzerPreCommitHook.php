@@ -98,7 +98,7 @@ abstract class BaseCodeAnalyzerPreCommitHook implements CodeAnalyzerPreCommitHoo
         }
 
         $this->validateAnalyzerInstallation()
-            ->analizeCommittedFiles($commitFiles);
+            ->analyzeCommittedFiles($commitFiles);
 
         if (empty($this->filesBadlyFormattedPaths)) {
             return $next($files);
@@ -187,7 +187,7 @@ abstract class BaseCodeAnalyzerPreCommitHook implements CodeAnalyzerPreCommitHoo
      * @param  Collection<int, ChangedFile>  $commitFiles  The files to analyze.
      * @return $this
      */
-    protected function analizeCommittedFiles(Collection $commitFiles): self
+    protected function analyzeCommittedFiles(Collection $commitFiles): self
     {
         /** @var Collection<int, ChangedFile> $chunk */
         foreach ($commitFiles->chunk($this->chunkSize) as $chunk) {

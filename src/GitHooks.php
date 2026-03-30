@@ -84,7 +84,7 @@ class GitHooks
     /**
      * Returns the content of the git hook stub.
      */
-    public function getHookStub(): ?string
+    public function getHookStub(): string
     {
         $hookStubPath = __DIR__.str_replace('/', DIRECTORY_SEPARATOR, '/Console/Commands/stubs/hook');
 

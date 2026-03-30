@@ -7,9 +7,6 @@ namespace Igorsgm\GitHooks\Traits;
 use RuntimeException;
 use Symfony\Component\Process\Process;
 
-/**
- * @codeCoverageIgnore
- */
 trait ProcessHelper
 {
     private string $cwd;

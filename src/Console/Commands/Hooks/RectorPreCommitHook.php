@@ -69,11 +69,20 @@ class RectorPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements CodeA
     }
 
     /**
-     * Retrieves additional parameters for the Rector code analyzer from the configuration file
+     * Retrieves additional parameters for the Rector code analyzer from the configuration file,
+     * filtering out pre-defined parameters to avoid conflicts.
      */
-    protected function additionalParams(): ?string
+    protected function additionalParams(): string
     {
         $additionalParams = (string) config('git-hooks.code_analyzers.rector.additional_params');
+
+        if (!empty($additionalParams)) {
+            $additionalParams = (string) preg_replace(
+                '/\s*--(config|c|dry-run)\b(=\S*)?\s*/',
+                '',
+                $additionalParams
+            );
+        }
 
         return $additionalParams;
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Igorsgm\GitHooks\Tests;
 
 // use Enlightn\Enlightn\EnlightnServiceProvider;
@@ -59,11 +61,24 @@ class TestCase extends \Orchestra\Testbench\TestCase
             'stop_at_first_analyzer_failure' => true,
             'debug_commands' => false,
             'debug_output' => false,
-            'run_in_docker' => false,
-            'docker_command' => '',
+        'run_in_docker' => false,
         ]);
 
         $this->config = $app['config'];
+    }
+
+    public function gitInit()
+    {
+        chdir(base_path());
+        shell_exec('git init --quiet');
+
+        return $this;
+    }
+
+    public function initializeGitAsTempDirectory(): void
+    {
+        $this->gitInit()
+            ->initializeTempDirectory(base_path('.git'));
     }
 
     /**
@@ -91,19 +106,5 @@ class TestCase extends \Orchestra\Testbench\TestCase
         return [
             'GitHooks' => GitHooks::class,
         ];
-    }
-
-    public function gitInit()
-    {
-        chdir(base_path());
-        shell_exec('git init --quiet');
-
-        return $this;
-    }
-
-    public function initializeGitAsTempDirectory(): void
-    {
-        $this->gitInit()
-            ->initializeTempDirectory(base_path('.git'));
     }
 }

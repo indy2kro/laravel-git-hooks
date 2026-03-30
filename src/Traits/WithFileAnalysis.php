@@ -23,7 +23,7 @@ trait WithFileAnalysis
      */
     abstract public function getFileExtensions(): array|string;
 
-    public function analizeCommittedFiles(Collection $commitFiles): self
+    public function analyzeCommittedFiles(Collection $commitFiles): self
     {
         /** @var Collection<int, ChangedFile> $chunk */
         foreach ($commitFiles->chunk($this->chunkSize) as $chunk) {

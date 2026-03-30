@@ -69,11 +69,20 @@ class PhpInsightsPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements 
     }
 
     /**
-     * Retrieves additional parameters for the phpinsights from the configuration file
+     * Retrieves additional parameters for phpinsights from the configuration file,
+     * filtering out pre-defined parameters to avoid conflicts.
      */
-    protected function additionalParams(): ?string
+    protected function additionalParams(): string
     {
         $additionalParams = (string) config('git-hooks.code_analyzers.phpinsights.additional_params');
+
+        if (!empty($additionalParams)) {
+            $additionalParams = (string) preg_replace(
+                '/\s*--(config-path|fix|no-interaction)\b(=\S*)?\s*/',
+                '',
+                $additionalParams
+            );
+        }
 
         return $additionalParams;
     }

@@ -38,16 +38,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24.x"
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Install NPM packages
-        run: npm ci --include=dev
-
       - name: Install PHP versions
         uses: shivammathur/setup-php@v2
         with:
@@ -111,22 +101,14 @@ jobs:
           git config --global user.name "GitHub Actions"
 
       # Code quality
-      - name: Execute tests (Unit and Feature tests) via PestPHP
-        shell: 'script -q -e -c "bash {0}"'
-        # Set environment
-        env:
-          SESSION_DRIVER: array
-          TTY: true
-        run: vendor/bin/pest
+      - name: Execute tests
+        run: composer test
 
       - name: Execute Code Sniffer via Laravel Pint
-        run: vendor/bin/pint --test src config
+        run: composer lint
 
       - name: Execute PHP Stan
-        run: vendor/bin/phpstan
+        run: composer analyze
 
       - name: Execute Rector
-        run: vendor/bin/rector --dry-run
-
-      - name: Execute PHP Insights
-        run: vendor/bin/phpinsights --disable-security-check --no-interaction
+        run: composer rector:check

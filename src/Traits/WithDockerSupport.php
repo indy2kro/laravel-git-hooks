@@ -12,7 +12,7 @@ trait WithDockerSupport
 
     public function setRunInDocker(bool $runInDocker): self
     {
-        $this->runInDocker = (bool) $runInDocker;
+        $this->runInDocker = $runInDocker;
 
         return $this;
     }
