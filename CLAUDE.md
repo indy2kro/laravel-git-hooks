@@ -33,12 +33,16 @@ php artisan git-hooks:make              # Create custom hook class
 **Testing**:
 
 ```bash
-composer test                           # Run all tests
+composer test                           # Run all unit + feature tests
 composer test tests/Unit/SomeTest.php   # Single test file
 composer test --filter="test name"     # Single test by name
 composer test tests/Features/           # Feature tests only
 composer test tests/Unit/               # Unit tests only
 composer test-coverage                 # With coverage
+
+# Acceptance tests (slow — run real tool binaries)
+composer test:acceptance                # Run all acceptance tests
+composer test:acceptance:cleanup        # Remove sandbox directories
 ```
 
 **Full QA**:
@@ -71,7 +75,10 @@ tests/
 ├── Unit/                   # Unit tests
 ├── Fixtures/               # Test fixtures
 ├── Datasets/               # Shared test data
-└── Traits/                 # Test traits
+├── Traits/                 # Test traits
+└── Acceptance/             # Slow end-to-end tests (real binaries)
+    ├── ToolSandbox.php     # Isolated per-tool installer
+    └── Hooks/              # One file per supported tool
 ```
 
 ## Key Concepts
@@ -131,3 +138,22 @@ tests/
 - Use Pest framework with `test()` and `it()` syntax
 - Use `Mockery::mock()` for mocking
 - Group related tests with `describe()` blocks
+
+### Acceptance Tests
+
+Acceptance tests live in `tests/Acceptance/` and are excluded from the normal `composer test` run. They exercise real tool binaries end-to-end. Each tool's test covers:
+
+- **Fails / passes** with matching/non-matching file extensions
+- **Auto-fix** (both `automatically_fix_errors = true` and interactive user-confirm)
+- **Multiple files** staged in a single run
+- **Non-matching files alongside** matching ones
+
+Run them with:
+
+```bash
+composer test:acceptance
+```
+
+They run automatically every Sunday via `.github/workflows/acceptance.yml` (PHP 8.2–8.4 × Node 18–22 matrix). You can also trigger the workflow manually from the GitHub Actions tab.
+
+**Do not run acceptance tests as part of normal development** — use `composer test` for the fast unit/feature suite.

@@ -2,6 +2,22 @@
 
 Acceptance tests validate each supported tool end-to-end by running real binaries against actual fixture files through the full Artisan pre-commit pipeline.
 
+## CI / Automated Schedule
+
+Acceptance tests run automatically every **Sunday at 06:00 UTC** via the `acceptance.yml` GitHub Actions workflow. They are intentionally excluded from the main `main.yml` CI workflow (which runs on every push/PR) because they are slow and require real tool binaries.
+
+The acceptance workflow runs a **PHP × Node matrix**:
+
+| PHP | Node |
+|-----|------|
+| 8.2 | 18, 20, 22 |
+| 8.3 | 18, 20, 22 |
+| 8.4 | 18, 20, 22 |
+
+You can also trigger it manually from the GitHub Actions tab using `workflow_dispatch`.
+
+Tool sandboxes are cached between weekly runs using `actions/cache` keyed on PHP version, Node version, and the acceptance test file hashes.
+
 ## Why Separate from Feature Tests?
 
 Feature tests mock binaries and focus on hook pipeline logic. Acceptance tests run the actual tool binaries to ensure the integration works with real tool output. They are kept separate so optional tools do not block the standard test suite.
@@ -21,7 +37,6 @@ Each optional tool is installed in its own isolated temporary directory via `Too
 ├── psalm/               ← vendor/bin/psalm
 ├── deptrac/             ← vendor/bin/deptrac
 ├── phpinsights/         ← vendor/bin/phpinsights
-├── composer-normalize/  ← vendor/bin/composer-normalize
 ├── codeception/         ← vendor/bin/codecept
 ├── eslint/              ← node_modules/.bin/eslint
 ├── prettier/            ← node_modules/.bin/prettier
@@ -65,8 +80,9 @@ On first run each tool is installed into its own isolated Composer project under
 | PHP Insights | `nunomaduro/phpinsights` | `PhpInsightsAcceptanceTest.php` |
 | Psalm | `vimeo/psalm` | `PsalmAcceptanceTest.php` |
 | Deptrac | `qossmic/deptrac` | `DeptracAcceptanceTest.php` |
-| Composer Normalize | `ergebnis/composer-normalize` | `ComposerNormalizeAcceptanceTest.php` |
 | Codeception | `codeception/codeception` | `CodeceptionAcceptanceTest.php` |
+
+> **Note:** `ergebnis/composer-normalize` is a project dev dependency (not a sandbox). Its acceptance test uses `vendor/bin/validate-json` directly.
 
 ## Optional JS Tools (auto-installed via sandbox)
 
@@ -82,11 +98,20 @@ Each JS tool is installed into its own isolated `npm` project.
 ## What Each Test Validates
 
 ### Code Analyzers
-- **Fails** test: staged fixture file with known issues triggers the hook to report failure.
-- **Passes** test: staged clean fixture file allows the commit to proceed.
+
+Each tool has tests covering the following scenarios:
+
+- **Fails** — staged fixture file with known issues triggers the hook to report failure and exit 1.
+- **Passes** — staged clean fixture file (or no matching file extension) allows the commit to proceed.
+- **Auto-fix (automatic)** — `automatically_fix_errors = true` runs the fixer without a prompt and exits 0 on success.
+- **Auto-fix (user confirms)** — user answers `yes` at the interactive prompt; fixer runs and exits 0.
+- **Non-matching files alongside** — staging a bad file alongside a file whose extension doesn't match means only the matching file is processed.
+- **Multiple files** — two or more matching files are staged together and processed in a single batch.
+
+> **PHP Insights note:** tests pass `--disable-security-check` in `additional_params` to skip the network security vulnerability check (~10 s) and keep tests fast.
 
 ### Test Runners (Pest, PHPUnit, Codeception, Vitest)
-- **Skip gracefully** test: staged source file with no matching test file causes the hook to pass through without running tests.
+- **Skip gracefully** — staged source file with no matching test file causes the hook to pass through without running tests.
 
 ## Fixture Files Used
 
@@ -95,9 +120,10 @@ Each JS tool is installed into its own isolated `npm` project.
 | `ClassWithFixableIssues.php` | Missing `declare(strict_types=1)`, `return null` for `string` type — fails Pint, Larastan, PHP CS Fixer, PHPCS, Psalm |
 | `ClassWithoutFixableIssues.php` | Clean, PSR-12 compliant empty class — passes all PHP analyzers |
 | `ClassWithRectorIssues.php` | Uses `empty()` on array — fails Rector's `SimplifyEmptyCheckOnEmptyArrayRector` rule |
-| `fixable-js-file.js` | JS file with double-quoted strings — fails Prettier/ESLint if configured |
+| `fixable-js-file.js` | JS file with double-quoted strings — fails ESLint/Prettier when single-quote rule is active |
+| `clean-js-file.js` | JS file with single-quoted strings — passes ESLint/Prettier |
 | `fixable-blade-file.blade.php` | Poorly indented Blade template — fails Blade Formatter |
-| `sample.js` | Simple clean JS file |
+| `sample.js` | Simple JS file used as a non-matching file in PHP tool tests |
 
 ## Adding a New Tool's Acceptance Test
 
