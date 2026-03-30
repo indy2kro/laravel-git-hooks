@@ -31,10 +31,8 @@ test('Psalm fails when staged PHP file has type errors', function () use ($proje
     ]);
     $this->config->set('git-hooks.pre-commit', [PsalmPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'ClassWithFixableIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
-    );
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php');
+    $filePath = $this->makeTempFile('ClassWithFixableIssues.php', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithFixableIssues.php');
@@ -43,6 +41,8 @@ test('Psalm fails when staged PHP file has type errors', function () use ($proje
         ->expectsOutputToContain('Psalm Failed')
         ->expectsOutputToContain('COMMIT FAILED')
         ->assertExitCode(1);
+
+    expect(file_get_contents($filePath))->toBe($originalContent);
 });
 
 test('Psalm passes when staged PHP file has no type errors', function () use ($projectRoot, $sandbox) {
@@ -56,7 +56,8 @@ test('Psalm passes when staged PHP file has no type errors', function () use ($p
     ]);
     $this->config->set('git-hooks.pre-commit', [PsalmPreCommitHook::class]);
 
-    $this->makeTempFile('sample.js', file_get_contents($projectRoot.'/tests/Fixtures/sample.js'));
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/sample.js');
+    $filePath = $this->makeTempFile('sample.js', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/sample.js');
@@ -65,6 +66,8 @@ test('Psalm passes when staged PHP file has no type errors', function () use ($p
     $this->artisan('git-hooks:pre-commit')
         ->doesntExpectOutputToContain('Psalm Failed')
         ->assertSuccessful();
+
+    expect(file_get_contents($filePath))->toBe($originalContent);
 });
 
 test('Psalm skips non-PHP files staged alongside PHP file with errors', function () use ($projectRoot, $sandbox) {
@@ -78,14 +81,11 @@ test('Psalm skips non-PHP files staged alongside PHP file with errors', function
     ]);
     $this->config->set('git-hooks.pre-commit', [PsalmPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'ClassWithFixableIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
-    );
-    $this->makeTempFile(
-        'sample.js',
-        file_get_contents($projectRoot.'/tests/Fixtures/sample.js')
-    );
+    $phpOriginal = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php');
+    $phpPath = $this->makeTempFile('ClassWithFixableIssues.php', $phpOriginal);
+
+    $jsOriginal = file_get_contents($projectRoot.'/tests/Fixtures/sample.js');
+    $jsPath = $this->makeTempFile('sample.js', $jsOriginal);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')
@@ -96,4 +96,7 @@ test('Psalm skips non-PHP files staged alongside PHP file with errors', function
         ->doesntExpectOutputToContain('sample.js')
         ->expectsOutputToContain('COMMIT FAILED')
         ->assertExitCode(1);
+
+    expect(file_get_contents($phpPath))->toBe($phpOriginal);
+    expect(file_get_contents($jsPath))->toBe($jsOriginal);
 });

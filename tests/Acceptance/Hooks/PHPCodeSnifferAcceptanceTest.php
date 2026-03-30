@@ -34,10 +34,8 @@ test('PHP_CodeSniffer fails when staged PHP file violates coding standard', func
     ]);
     $this->config->set('git-hooks.pre-commit', [PHPCodeSnifferPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'ClassWithFixableIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
-    );
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php');
+    $filePath = $this->makeTempFile('ClassWithFixableIssues.php', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithFixableIssues.php');
@@ -47,6 +45,8 @@ test('PHP_CodeSniffer fails when staged PHP file violates coding standard', func
         ->expectsOutputToContain('COMMIT FAILED')
         ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
         ->assertExitCode(1);
+
+    expect(file_get_contents($filePath))->toBe($originalContent);
 });
 
 test('PHP_CodeSniffer passes when no PHP files are staged', function () use ($projectRoot, $sandbox) {
@@ -63,7 +63,8 @@ test('PHP_CodeSniffer passes when no PHP files are staged', function () use ($pr
     ]);
     $this->config->set('git-hooks.pre-commit', [PHPCodeSnifferPreCommitHook::class]);
 
-    $this->makeTempFile('sample.js', file_get_contents($projectRoot.'/tests/Fixtures/sample.js'));
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/sample.js');
+    $filePath = $this->makeTempFile('sample.js', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/sample.js');
@@ -71,6 +72,8 @@ test('PHP_CodeSniffer passes when no PHP files are staged', function () use ($pr
     $this->artisan('git-hooks:pre-commit')
         ->doesntExpectOutputToContain('PHP_CodeSniffer Failed')
         ->assertSuccessful();
+
+    expect(file_get_contents($filePath))->toBe($originalContent);
 });
 
 test('PHP_CodeSniffer skips non-PHP files staged alongside PHP file with issues', function () use ($projectRoot, $sandbox) {
@@ -87,14 +90,11 @@ test('PHP_CodeSniffer skips non-PHP files staged alongside PHP file with issues'
     ]);
     $this->config->set('git-hooks.pre-commit', [PHPCodeSnifferPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'ClassWithFixableIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
-    );
-    $this->makeTempFile(
-        'sample.js',
-        file_get_contents($projectRoot.'/tests/Fixtures/sample.js')
-    );
+    $phpOriginal = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php');
+    $phpPath = $this->makeTempFile('ClassWithFixableIssues.php', $phpOriginal);
+
+    $jsOriginal = file_get_contents($projectRoot.'/tests/Fixtures/sample.js');
+    $jsPath = $this->makeTempFile('sample.js', $jsOriginal);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')
@@ -105,4 +105,7 @@ test('PHP_CodeSniffer skips non-PHP files staged alongside PHP file with issues'
         ->doesntExpectOutputToContain('temp/sample.js')
         ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
         ->assertExitCode(1);
+
+    expect(file_get_contents($phpPath))->toBe($phpOriginal);
+    expect(file_get_contents($jsPath))->toBe($jsOriginal);
 });

@@ -31,10 +31,8 @@ test('ESLint fails when staged JS file has linting errors', function () use ($pr
     ]);
     $this->config->set('git-hooks.pre-commit', [ESLintPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'fixable-js-file.js',
-        file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js')
-    );
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js');
+    $filePath = $this->makeTempFile('fixable-js-file.js', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/fixable-js-file.js');
@@ -44,6 +42,8 @@ test('ESLint fails when staged JS file has linting errors', function () use ($pr
         ->expectsOutputToContain('COMMIT FAILED')
         ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
         ->assertExitCode(1);
+
+    expect(file_get_contents($filePath))->toBe($originalContent);
 });
 
 test('ESLint passes when staged JS file has no linting errors', function () use ($projectRoot, $sandbox) {
@@ -57,7 +57,8 @@ test('ESLint passes when staged JS file has no linting errors', function () use 
     ]);
     $this->config->set('git-hooks.pre-commit', [ESLintPreCommitHook::class]);
 
-    $this->makeTempFile('ClassWithoutFixableIssues.php', file_get_contents($projectRoot.'/tests/Fixtures/ClassWithoutFixableIssues.php'));
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithoutFixableIssues.php');
+    $filePath = $this->makeTempFile('ClassWithoutFixableIssues.php', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithoutFixableIssues.php');
@@ -65,6 +66,8 @@ test('ESLint passes when staged JS file has no linting errors', function () use 
     $this->artisan('git-hooks:pre-commit')
         ->doesntExpectOutputToContain('ESLint Failed')
         ->assertSuccessful();
+
+    expect(file_get_contents($filePath))->toBe($originalContent);
 });
 
 test('ESLint auto-fixes staged JS file when automatically_fix_errors is enabled', function () use ($projectRoot, $sandbox) {
@@ -79,10 +82,8 @@ test('ESLint auto-fixes staged JS file when automatically_fix_errors is enabled'
     $this->config->set('git-hooks.pre-commit', [ESLintPreCommitHook::class]);
     $this->config->set('git-hooks.automatically_fix_errors', true);
 
-    $this->makeTempFile(
-        'fixable-js-file.js',
-        file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js')
-    );
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js');
+    $filePath = $this->makeTempFile('fixable-js-file.js', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/fixable-js-file.js');
@@ -91,6 +92,8 @@ test('ESLint auto-fixes staged JS file when automatically_fix_errors is enabled'
         ->expectsOutputToContain('ESLint Failed')
         ->expectsOutputToContain('COMMIT FAILED')
         ->assertExitCode(0);
+
+    expect(file_get_contents($filePath))->not->toBe($originalContent);
 });
 
 test('ESLint skips non-JS files staged alongside JS file with errors', function () use ($projectRoot, $sandbox) {
@@ -104,14 +107,11 @@ test('ESLint skips non-JS files staged alongside JS file with errors', function 
     ]);
     $this->config->set('git-hooks.pre-commit', [ESLintPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'fixable-js-file.js',
-        file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js')
-    );
-    $this->makeTempFile(
-        'ClassWithFixableIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
-    );
+    $jsOriginal = file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js');
+    $jsPath = $this->makeTempFile('fixable-js-file.js', $jsOriginal);
+
+    $phpOriginal = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php');
+    $phpPath = $this->makeTempFile('ClassWithFixableIssues.php', $phpOriginal);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')
@@ -122,6 +122,9 @@ test('ESLint skips non-JS files staged alongside JS file with errors', function 
         ->doesntExpectOutputToContain('ClassWithFixableIssues.php')
         ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
         ->assertExitCode(1);
+
+    expect(file_get_contents($jsPath))->toBe($jsOriginal);
+    expect(file_get_contents($phpPath))->toBe($phpOriginal);
 });
 
 test('ESLint processes multiple JS files in a single run', function () use ($projectRoot, $sandbox) {
@@ -135,14 +138,11 @@ test('ESLint processes multiple JS files in a single run', function () use ($pro
     ]);
     $this->config->set('git-hooks.pre-commit', [ESLintPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'fixable-js-file.js',
-        file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js')
-    );
-    $this->makeTempFile(
-        'clean-js-file.js',
-        file_get_contents($projectRoot.'/tests/Fixtures/clean-js-file.js')
-    );
+    $fixableOriginal = file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js');
+    $fixablePath = $this->makeTempFile('fixable-js-file.js', $fixableOriginal);
+
+    $cleanOriginal = file_get_contents($projectRoot.'/tests/Fixtures/clean-js-file.js');
+    $cleanPath = $this->makeTempFile('clean-js-file.js', $cleanOriginal);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')
@@ -153,4 +153,7 @@ test('ESLint processes multiple JS files in a single run', function () use ($pro
         ->expectsOutputToContain('COMMIT FAILED')
         ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
         ->assertExitCode(1);
+
+    expect(file_get_contents($fixablePath))->toBe($fixableOriginal);
+    expect(file_get_contents($cleanPath))->toBe($cleanOriginal);
 });

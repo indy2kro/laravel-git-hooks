@@ -31,10 +31,8 @@ test('PHP Insights fails when staged PHP file has quality issues', function () u
     ]);
     $this->config->set('git-hooks.pre-commit', [PhpInsightsPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'ClassWithFixableIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
-    );
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php');
+    $filePath = $this->makeTempFile('ClassWithFixableIssues.php', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithFixableIssues.php');
@@ -44,6 +42,8 @@ test('PHP Insights fails when staged PHP file has quality issues', function () u
         ->expectsOutputToContain('COMMIT FAILED')
         ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
         ->assertExitCode(1);
+
+    expect(file_get_contents($filePath))->toBe($originalContent);
 });
 
 test('PHP Insights passes when no PHP files are staged', function () use ($projectRoot, $sandbox) {
@@ -57,10 +57,8 @@ test('PHP Insights passes when no PHP files are staged', function () use ($proje
     ]);
     $this->config->set('git-hooks.pre-commit', [PhpInsightsPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'sample.js',
-        file_get_contents($projectRoot.'/tests/Fixtures/sample.js')
-    );
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/sample.js');
+    $filePath = $this->makeTempFile('sample.js', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/sample.js');
@@ -68,6 +66,8 @@ test('PHP Insights passes when no PHP files are staged', function () use ($proje
     $this->artisan('git-hooks:pre-commit')
         ->doesntExpectOutputToContain('PhpInsights Failed')
         ->assertSuccessful();
+
+    expect(file_get_contents($filePath))->toBe($originalContent);
 });
 
 test('PHP Insights skips non-PHP files staged alongside PHP files with quality issues', function () use ($projectRoot, $sandbox) {
@@ -81,14 +81,11 @@ test('PHP Insights skips non-PHP files staged alongside PHP files with quality i
     ]);
     $this->config->set('git-hooks.pre-commit', [PhpInsightsPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'ClassWithFixableIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
-    );
-    $this->makeTempFile(
-        'sample.js',
-        file_get_contents($projectRoot.'/tests/Fixtures/sample.js')
-    );
+    $phpOriginal = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php');
+    $phpPath = $this->makeTempFile('ClassWithFixableIssues.php', $phpOriginal);
+
+    $jsOriginal = file_get_contents($projectRoot.'/tests/Fixtures/sample.js');
+    $jsPath = $this->makeTempFile('sample.js', $jsOriginal);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')
@@ -99,4 +96,7 @@ test('PHP Insights skips non-PHP files staged alongside PHP files with quality i
         ->expectsOutputToContain('COMMIT FAILED')
         ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
         ->assertExitCode(1);
+
+    expect(file_get_contents($phpPath))->toBe($phpOriginal);
+    expect(file_get_contents($jsPath))->toBe($jsOriginal);
 });

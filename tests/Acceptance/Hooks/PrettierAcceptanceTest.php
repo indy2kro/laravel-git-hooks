@@ -31,10 +31,8 @@ test('Prettier fails when staged JS file is not formatted', function () use ($pr
     ]);
     $this->config->set('git-hooks.pre-commit', [PrettierPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'fixable-js-file.js',
-        file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js')
-    );
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js');
+    $filePath = $this->makeTempFile('fixable-js-file.js', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/fixable-js-file.js');
@@ -44,6 +42,8 @@ test('Prettier fails when staged JS file is not formatted', function () use ($pr
         ->expectsOutputToContain('COMMIT FAILED')
         ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
         ->assertExitCode(1);
+
+    expect(file_get_contents($filePath))->toBe($originalContent);
 });
 
 test('Prettier passes when staged JS file is already formatted', function () use ($projectRoot, $sandbox) {
@@ -57,7 +57,8 @@ test('Prettier passes when staged JS file is already formatted', function () use
     ]);
     $this->config->set('git-hooks.pre-commit', [PrettierPreCommitHook::class]);
 
-    $this->makeTempFile('ClassWithoutFixableIssues.php', file_get_contents($projectRoot.'/tests/Fixtures/ClassWithoutFixableIssues.php'));
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithoutFixableIssues.php');
+    $filePath = $this->makeTempFile('ClassWithoutFixableIssues.php', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithoutFixableIssues.php');
@@ -65,6 +66,8 @@ test('Prettier passes when staged JS file is already formatted', function () use
     $this->artisan('git-hooks:pre-commit')
         ->doesntExpectOutputToContain('Prettier Failed')
         ->assertSuccessful();
+
+    expect(file_get_contents($filePath))->toBe($originalContent);
 });
 
 test('Prettier auto-fixes staged JS file when automatically_fix_errors is enabled', function () use ($projectRoot, $sandbox) {
@@ -79,10 +82,8 @@ test('Prettier auto-fixes staged JS file when automatically_fix_errors is enable
     $this->config->set('git-hooks.pre-commit', [PrettierPreCommitHook::class]);
     $this->config->set('git-hooks.automatically_fix_errors', true);
 
-    $this->makeTempFile(
-        'fixable-js-file.js',
-        file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js')
-    );
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js');
+    $filePath = $this->makeTempFile('fixable-js-file.js', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/fixable-js-file.js');
@@ -91,6 +92,8 @@ test('Prettier auto-fixes staged JS file when automatically_fix_errors is enable
         ->expectsOutputToContain('Prettier Failed')
         ->expectsOutputToContain('COMMIT FAILED')
         ->assertExitCode(0);
+
+    expect(file_get_contents($filePath))->not->toBe($originalContent);
 });
 
 test('Prettier skips non-JS files staged alongside JS file with errors', function () use ($projectRoot, $sandbox) {
@@ -104,14 +107,11 @@ test('Prettier skips non-JS files staged alongside JS file with errors', functio
     ]);
     $this->config->set('git-hooks.pre-commit', [PrettierPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'fixable-js-file.js',
-        file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js')
-    );
-    $this->makeTempFile(
-        'ClassWithFixableIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
-    );
+    $jsOriginal = file_get_contents($projectRoot.'/tests/Fixtures/fixable-js-file.js');
+    $jsPath = $this->makeTempFile('fixable-js-file.js', $jsOriginal);
+
+    $phpOriginal = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php');
+    $phpPath = $this->makeTempFile('ClassWithFixableIssues.php', $phpOriginal);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')
@@ -122,4 +122,7 @@ test('Prettier skips non-JS files staged alongside JS file with errors', functio
         ->doesntExpectOutputToContain('ClassWithFixableIssues.php')
         ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
         ->assertExitCode(1);
+
+    expect(file_get_contents($jsPath))->toBe($jsOriginal);
+    expect(file_get_contents($phpPath))->toBe($phpOriginal);
 });

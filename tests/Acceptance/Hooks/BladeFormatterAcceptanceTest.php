@@ -30,10 +30,8 @@ test('Blade Formatter fails when staged blade file is not formatted', function (
     ]);
     $this->config->set('git-hooks.pre-commit', [BladeFormatterPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'fixable-blade-file.blade.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/fixable-blade-file.blade.php')
-    );
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/fixable-blade-file.blade.php');
+    $filePath = $this->makeTempFile('fixable-blade-file.blade.php', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/fixable-blade-file.blade.php');
@@ -43,6 +41,8 @@ test('Blade Formatter fails when staged blade file is not formatted', function (
         ->expectsOutputToContain('COMMIT FAILED')
         ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
         ->assertExitCode(1);
+
+    expect(file_get_contents($filePath))->toBe($originalContent);
 });
 
 test('Blade Formatter passes when no blade files are staged', function () use ($projectRoot, $sandbox) {
@@ -55,10 +55,8 @@ test('Blade Formatter passes when no blade files are staged', function () use ($
     ]);
     $this->config->set('git-hooks.pre-commit', [BladeFormatterPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'ClassWithFixableIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
-    );
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php');
+    $filePath = $this->makeTempFile('ClassWithFixableIssues.php', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithFixableIssues.php');
@@ -66,6 +64,8 @@ test('Blade Formatter passes when no blade files are staged', function () use ($
     $this->artisan('git-hooks:pre-commit')
         ->doesntExpectOutputToContain('Blade Formatter Failed')
         ->assertSuccessful();
+
+    expect(file_get_contents($filePath))->toBe($originalContent);
 });
 
 test('Blade Formatter auto-fixes staged blade file when automatically_fix_errors is enabled', function () use ($projectRoot, $sandbox) {
@@ -79,10 +79,8 @@ test('Blade Formatter auto-fixes staged blade file when automatically_fix_errors
     $this->config->set('git-hooks.pre-commit', [BladeFormatterPreCommitHook::class]);
     $this->config->set('git-hooks.automatically_fix_errors', true);
 
-    $this->makeTempFile(
-        'fixable-blade-file.blade.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/fixable-blade-file.blade.php')
-    );
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/fixable-blade-file.blade.php');
+    $filePath = $this->makeTempFile('fixable-blade-file.blade.php', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/fixable-blade-file.blade.php');
@@ -91,6 +89,8 @@ test('Blade Formatter auto-fixes staged blade file when automatically_fix_errors
         ->expectsOutputToContain('Blade Formatter Failed')
         ->expectsOutputToContain('COMMIT FAILED')
         ->assertExitCode(0);
+
+    expect(file_get_contents($filePath))->not->toBe($originalContent);
 });
 
 test('Blade Formatter skips non-blade files staged alongside blade file with issues', function () use ($projectRoot, $sandbox) {
@@ -103,14 +103,11 @@ test('Blade Formatter skips non-blade files staged alongside blade file with iss
     ]);
     $this->config->set('git-hooks.pre-commit', [BladeFormatterPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'fixable-blade-file.blade.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/fixable-blade-file.blade.php')
-    );
-    $this->makeTempFile(
-        'ClassWithFixableIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php')
-    );
+    $bladeOriginal = file_get_contents($projectRoot.'/tests/Fixtures/fixable-blade-file.blade.php');
+    $bladePath = $this->makeTempFile('fixable-blade-file.blade.php', $bladeOriginal);
+
+    $phpOriginal = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithFixableIssues.php');
+    $phpPath = $this->makeTempFile('ClassWithFixableIssues.php', $phpOriginal);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')
@@ -121,4 +118,7 @@ test('Blade Formatter skips non-blade files staged alongside blade file with iss
         ->doesntExpectOutputToContain('ClassWithFixableIssues.php')
         ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
         ->assertExitCode(1);
+
+    expect(file_get_contents($bladePath))->toBe($bladeOriginal);
+    expect(file_get_contents($phpPath))->toBe($phpOriginal);
 });

@@ -21,12 +21,15 @@ test('Composer Normalize hook skips gracefully when no composer.json is staged',
     ]);
     $this->config->set('git-hooks.pre-commit', [ComposerNormalizePreCommitHook::class]);
 
-    $this->makeTempFile('NoTestFile.php', '<?php class NoTestFile {}');
+    $originalContent = '<?php class NoTestFile {}';
+    $filePath = $this->makeTempFile('NoTestFile.php', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/NoTestFile.php');
 
     $this->artisan('git-hooks:pre-commit')->assertSuccessful();
+
+    expect(file_get_contents($filePath))->toBe($originalContent);
 })->skip(!file_exists($validateJsonBin), 'validate-json binary not found');
 
 test('Composer Normalize hook skips gracefully when only JS files are staged', function () use ($validateJsonBin) {
@@ -37,7 +40,8 @@ test('Composer Normalize hook skips gracefully when only JS files are staged', f
     ]);
     $this->config->set('git-hooks.pre-commit', [ComposerNormalizePreCommitHook::class]);
 
-    $this->makeTempFile('sample.js', "const foo = 'bar';\n");
+    $originalContent = "const foo = 'bar';\n";
+    $filePath = $this->makeTempFile('sample.js', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/sample.js');
@@ -45,4 +49,6 @@ test('Composer Normalize hook skips gracefully when only JS files are staged', f
     $this->artisan('git-hooks:pre-commit')
         ->doesntExpectOutputToContain('Composer Normalize Failed')
         ->assertSuccessful();
+
+    expect(file_get_contents($filePath))->toBe($originalContent);
 })->skip(!file_exists($validateJsonBin), 'validate-json binary not found');

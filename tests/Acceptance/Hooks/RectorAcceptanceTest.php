@@ -17,10 +17,8 @@ test('Rector fails when staged PHP file has improvable code', function ($rectorC
     $this->config->set('git-hooks.code_analyzers.rector', $rectorConfiguration);
     $this->config->set('git-hooks.pre-commit', [RectorPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'ClassWithRectorIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithRectorIssues.php')
-    );
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithRectorIssues.php');
+    $filePath = $this->makeTempFile('ClassWithRectorIssues.php', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithRectorIssues.php');
@@ -30,16 +28,16 @@ test('Rector fails when staged PHP file has improvable code', function ($rectorC
         ->expectsOutputToContain('COMMIT FAILED')
         ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
         ->assertExitCode(1);
+
+    expect(file_get_contents($filePath))->toBe($originalContent);
 })->with('rectorConfiguration')->skip(!file_exists($rectorBin), 'Rector binary not found');
 
 test('Rector passes when staged PHP file has no improvable code', function ($rectorConfiguration) use ($projectRoot) {
     $this->config->set('git-hooks.code_analyzers.rector', $rectorConfiguration);
     $this->config->set('git-hooks.pre-commit', [RectorPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'ClassWithoutFixableIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithoutFixableIssues.php')
-    );
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithoutFixableIssues.php');
+    $filePath = $this->makeTempFile('ClassWithoutFixableIssues.php', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithoutFixableIssues.php');
@@ -47,6 +45,8 @@ test('Rector passes when staged PHP file has no improvable code', function ($rec
     $this->artisan('git-hooks:pre-commit')
         ->doesntExpectOutputToContain('Rector Failed')
         ->assertSuccessful();
+
+    expect(file_get_contents($filePath))->toBe($originalContent);
 })->with('rectorConfiguration')->skip(!file_exists($rectorBin), 'Rector binary not found');
 
 test('Rector auto-fixes staged PHP file when automatically_fix_errors is enabled', function ($rectorConfiguration) use ($projectRoot) {
@@ -54,10 +54,8 @@ test('Rector auto-fixes staged PHP file when automatically_fix_errors is enabled
     $this->config->set('git-hooks.pre-commit', [RectorPreCommitHook::class]);
     $this->config->set('git-hooks.automatically_fix_errors', true);
 
-    $this->makeTempFile(
-        'ClassWithRectorIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithRectorIssues.php')
-    );
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithRectorIssues.php');
+    $filePath = $this->makeTempFile('ClassWithRectorIssues.php', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithRectorIssues.php');
@@ -66,16 +64,16 @@ test('Rector auto-fixes staged PHP file when automatically_fix_errors is enabled
         ->expectsOutputToContain('Rector Failed')
         ->expectsOutputToContain('COMMIT FAILED')
         ->assertExitCode(0);
+
+    expect(file_get_contents($filePath))->not->toBe($originalContent);
 })->with('rectorConfiguration')->skip(!file_exists($rectorBin), 'Rector binary not found');
 
 test('Rector fixes staged PHP file when user confirms autofix', function ($rectorConfiguration) use ($projectRoot) {
     $this->config->set('git-hooks.code_analyzers.rector', $rectorConfiguration);
     $this->config->set('git-hooks.pre-commit', [RectorPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'ClassWithRectorIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithRectorIssues.php')
-    );
+    $originalContent = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithRectorIssues.php');
+    $filePath = $this->makeTempFile('ClassWithRectorIssues.php', $originalContent);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/ClassWithRectorIssues.php');
@@ -85,20 +83,19 @@ test('Rector fixes staged PHP file when user confirms autofix', function ($recto
         ->expectsOutputToContain('COMMIT FAILED')
         ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'yes')
         ->assertExitCode(0);
+
+    expect(file_get_contents($filePath))->not->toBe($originalContent);
 })->with('rectorConfiguration')->skip(!file_exists($rectorBin), 'Rector binary not found');
 
 test('Rector skips non-PHP files staged alongside PHP file with issues', function ($rectorConfiguration) use ($projectRoot) {
     $this->config->set('git-hooks.code_analyzers.rector', $rectorConfiguration);
     $this->config->set('git-hooks.pre-commit', [RectorPreCommitHook::class]);
 
-    $this->makeTempFile(
-        'ClassWithRectorIssues.php',
-        file_get_contents($projectRoot.'/tests/Fixtures/ClassWithRectorIssues.php')
-    );
-    $this->makeTempFile(
-        'sample.js',
-        file_get_contents($projectRoot.'/tests/Fixtures/sample.js')
-    );
+    $phpOriginal = file_get_contents($projectRoot.'/tests/Fixtures/ClassWithRectorIssues.php');
+    $phpPath = $this->makeTempFile('ClassWithRectorIssues.php', $phpOriginal);
+
+    $jsOriginal = file_get_contents($projectRoot.'/tests/Fixtures/sample.js');
+    $jsPath = $this->makeTempFile('sample.js', $jsOriginal);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')
@@ -109,4 +106,7 @@ test('Rector skips non-PHP files staged alongside PHP file with issues', functio
         ->doesntExpectOutputToContain('temp/sample.js')
         ->expectsConfirmation('Would you like to attempt to correct files automagically?', 'no')
         ->assertExitCode(1);
+
+    expect(file_get_contents($phpPath))->toBe($phpOriginal);
+    expect(file_get_contents($jsPath))->toBe($jsOriginal);
 })->with('rectorConfiguration')->skip(!file_exists($rectorBin), 'Rector binary not found');
