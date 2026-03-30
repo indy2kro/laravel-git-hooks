@@ -6,6 +6,7 @@ namespace Igorsgm\GitHooks\Traits;
 
 use Igorsgm\GitHooks\Git\ChangedFile;
 use Illuminate\Support\Collection;
+use Symfony\Component\Process\Process;
 
 trait WithFileAnalysis
 {
@@ -56,10 +57,14 @@ trait WithFileAnalysis
      */
     protected function getAnalyzableFilePaths(Collection $files): array
     {
-        return $files
+        /** @var array<int, string> $result */
+        $result = $files
             ->filter(fn ($file) => $this->canFileBeAnalyzed($file))
             ->map(fn ($file) => $file->getFilePath())
+            ->values()
             ->toArray();
+
+        return $result;
     }
 
     /**
@@ -87,7 +92,7 @@ trait WithFileAnalysis
 
     protected function handleAnalysisFailure(
         string $filePath,
-        mixed $process
+        Process $process
     ): void {
         if (empty($this->filesBadlyFormattedPaths)) {
             $this->command->newLine();

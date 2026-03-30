@@ -55,6 +55,7 @@ class HooksPipeline extends Pipeline
                     // of the dependency injection container. We can then build a callable and
                     // execute the pipe function giving in the parameters that are required.
                     $pipe = $this->getContainer()->make($pipe, ['parameters' => $hookParameters]);
+                    assert(is_object($pipe));
 
                     $this->handlePipeEnd(true);
 
@@ -70,9 +71,12 @@ class HooksPipeline extends Pipeline
                     $parameters = [$passable, $stack];
                 }
 
-                $carry = method_exists($pipe, $this->method)
-                            ? $pipe->{$this->method}(...$parameters)
-                            : $pipe(...$parameters);
+                if (method_exists($pipe, $this->method)) {
+                    $carry = $pipe->{$this->method}(...$parameters);
+                } else {
+                    assert(is_callable($pipe));
+                    $carry = $pipe(...$parameters);
+                }
 
                 return $this->handleCarry($carry);
             } catch (Throwable $e) {

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Igorsgm\GitHooks\Console\Commands\Hooks;
 
+use Igorsgm\GitHooks\Support\Config;
+
 class PestPreCommitHook extends BaseTestRunnerPreCommitHook
 {
     protected string $name = 'Pest';
@@ -26,7 +28,7 @@ class PestPreCommitHook extends BaseTestRunnerPreCommitHook
 
     protected function getAdditionalParams(): string
     {
-        $additionalParams = (string) config('git-hooks.code_analyzers.pest.additional_params', '');
+        $additionalParams = Config::string('git-hooks.code_analyzers.pest.additional_params');
 
         if (!empty($additionalParams)) {
             $additionalParams = (string) preg_replace('/\s*--(filter|f)\b(=\S*)?\s*/', '', $additionalParams);

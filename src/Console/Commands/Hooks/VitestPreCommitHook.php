@@ -8,6 +8,7 @@ use Closure;
 use Igorsgm\GitHooks\Contracts\CodeAnalyzerPreCommitHook;
 use Igorsgm\GitHooks\Git\ChangedFile;
 use Igorsgm\GitHooks\Git\ChangedFiles;
+use Igorsgm\GitHooks\Support\Config;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
@@ -57,7 +58,7 @@ class VitestPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements CodeA
 
     protected function getAdditionalParams(): string
     {
-        $additionalParams = (string) config('git-hooks.code_analyzers.vitest.additional_params', '');
+        $additionalParams = Config::string('git-hooks.code_analyzers.vitest.additional_params');
 
         if (!empty($additionalParams)) {
             $additionalParams = (string) preg_replace('/\s*--(filter)\b(=\S*)?\s*/', '', $additionalParams);

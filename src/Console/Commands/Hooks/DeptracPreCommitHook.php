@@ -7,6 +7,7 @@ namespace Igorsgm\GitHooks\Console\Commands\Hooks;
 use Closure;
 use Igorsgm\GitHooks\Contracts\CodeAnalyzerPreCommitHook;
 use Igorsgm\GitHooks\Git\ChangedFiles;
+use Igorsgm\GitHooks\Support\Config;
 
 class DeptracPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements CodeAnalyzerPreCommitHook
 {
@@ -65,7 +66,7 @@ class DeptracPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements Code
      */
     protected function configParam(): string
     {
-        $deptracConfig = mb_rtrim((string) config('git-hooks.code_analyzers.deptrac.config'), '/');
+        $deptracConfig = mb_rtrim(Config::string('git-hooks.code_analyzers.deptrac.config'), '/');
 
         if (!empty($deptracConfig)) {
             $this->validateConfigPath($deptracConfig);
@@ -82,7 +83,7 @@ class DeptracPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements Code
      */
     protected function additionalParams(): string
     {
-        $additionalParams = (string) config('git-hooks.code_analyzers.deptrac.additional_params');
+        $additionalParams = Config::string('git-hooks.code_analyzers.deptrac.additional_params');
 
         if (!empty($additionalParams)) {
             $additionalParams = (string) preg_replace(

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Igorsgm\GitHooks\Console\Commands\Hooks;
 
 use Igorsgm\GitHooks\Git\ChangedFile;
+use Igorsgm\GitHooks\Support\Config;
 
 class CodeceptionPreCommitHook extends BaseTestRunnerPreCommitHook
 {
@@ -28,7 +29,7 @@ class CodeceptionPreCommitHook extends BaseTestRunnerPreCommitHook
 
     protected function getAdditionalParams(): string
     {
-        $additionalParams = (string) config('git-hooks.code_analyzers.codeception.additional_params', '');
+        $additionalParams = Config::string('git-hooks.code_analyzers.codeception.additional_params');
 
         if (!empty($additionalParams)) {
             $additionalParams = (string) preg_replace('/\s*--(filter)\b(=\S*)?\s*/', '', $additionalParams);

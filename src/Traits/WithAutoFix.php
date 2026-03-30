@@ -6,6 +6,7 @@ namespace Igorsgm\GitHooks\Traits;
 
 use Igorsgm\GitHooks\Exceptions\HookFailException;
 use Symfony\Component\Console\Terminal;
+use Symfony\Component\Process\Process;
 
 trait WithAutoFix
 {
@@ -25,7 +26,7 @@ trait WithAutoFix
         return false;
     }
 
-    protected function outputDebugCommandIfEnabled(mixed $process): void
+    protected function outputDebugCommandIfEnabled(Process $process): void
     {
         if (config('git-hooks.debug_commands')) {
             $this->command->newLine();
@@ -36,7 +37,7 @@ trait WithAutoFix
     /**
      * @param  array<string, mixed>  $params
      */
-    protected function rerunAnalyzer(string $filePath, array $params): mixed
+    protected function rerunAnalyzer(string $filePath, array $params): Process
     {
         $command = $this->dockerCommand($this->analyzerCommand().' '.$filePath);
         $process = $this->runCommands($command, $params);
@@ -48,7 +49,7 @@ trait WithAutoFix
         return $process;
     }
 
-    protected function handleFixFailure(string $filePath, mixed $process): void
+    protected function handleFixFailure(string $filePath, Process $process): void
     {
         if (empty($this->filesBadlyFormattedPaths)) {
             $this->command->newLine();

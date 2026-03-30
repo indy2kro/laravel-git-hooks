@@ -100,3 +100,10 @@ test('isMergeInProgress returns false when a merge is not in progress', function
     shell_exec('git merge --abort');
     expect($this->isMergeInProgress())->toBeFalse();
 });
+
+test('getCommitMessageContentFromFile throws Exception when file does not exist', function () {
+    $nonExistentPath = sys_get_temp_dir().DIRECTORY_SEPARATOR.'non-existent-git-commit-message-'.uniqid().'.txt';
+
+    expect(fn () => $this->getCommitMessageContentFromFile($nonExistentPath))
+        ->toThrow(Exception::class);
+});

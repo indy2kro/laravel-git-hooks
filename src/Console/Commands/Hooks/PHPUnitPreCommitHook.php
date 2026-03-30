@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Igorsgm\GitHooks\Console\Commands\Hooks;
 
+use Igorsgm\GitHooks\Support\Config;
+
 class PHPUnitPreCommitHook extends BaseTestRunnerPreCommitHook
 {
     protected string $name = 'PHPUnit';
@@ -26,7 +28,7 @@ class PHPUnitPreCommitHook extends BaseTestRunnerPreCommitHook
 
     protected function getAdditionalParams(): string
     {
-        $additionalParams = (string) config('git-hooks.code_analyzers.phpunit.additional_params', '');
+        $additionalParams = Config::string('git-hooks.code_analyzers.phpunit.additional_params');
 
         if (!empty($additionalParams)) {
             $additionalParams = (string) preg_replace('/\s*--(filter)\b(=\S*)?\s*/', '', $additionalParams);

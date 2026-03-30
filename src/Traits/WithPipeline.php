@@ -18,12 +18,16 @@ trait WithPipeline
 
     /**
      * {@inheritDoc}
+     *
+     * @return array<int, callable>
      */
     public function getRegisteredHooks(): array
     {
         $hooks = collect((array) config('git-hooks.'.$this->getHook()));
+        /** @var array<int, callable> $result */
+        $result = $hooks->map(fn ($hook, $i) => is_int($i) ? $hook : $i)->values()->all();
 
-        return $hooks->map(fn ($hook, $i) => is_int($i) ? $hook : $i)->all();
+        return $result;
     }
 
     public function getHookTaskTitle(Hook $hook): string

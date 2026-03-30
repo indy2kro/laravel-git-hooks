@@ -7,6 +7,7 @@ namespace Igorsgm\GitHooks\Console\Commands\Hooks;
 use Closure;
 use Igorsgm\GitHooks\Contracts\CodeAnalyzerPreCommitHook;
 use Igorsgm\GitHooks\Git\ChangedFiles;
+use Igorsgm\GitHooks\Support\Config;
 
 class PsalmPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements CodeAnalyzerPreCommitHook
 {
@@ -65,7 +66,7 @@ class PsalmPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements CodeAn
      */
     protected function configParam(): string
     {
-        $psalmConfig = mb_rtrim((string) config('git-hooks.code_analyzers.psalm.config'), '/');
+        $psalmConfig = mb_rtrim(Config::string('git-hooks.code_analyzers.psalm.config'), '/');
 
         if (!empty($psalmConfig)) {
             $this->validateConfigPath($psalmConfig);
@@ -82,7 +83,7 @@ class PsalmPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements CodeAn
      */
     protected function additionalParams(): string
     {
-        $additionalParams = (string) config('git-hooks.code_analyzers.psalm.additional_params');
+        $additionalParams = Config::string('git-hooks.code_analyzers.psalm.additional_params');
 
         if (!empty($additionalParams)) {
             $additionalParams = (string) preg_replace(

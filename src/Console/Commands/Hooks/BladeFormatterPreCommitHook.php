@@ -7,6 +7,7 @@ namespace Igorsgm\GitHooks\Console\Commands\Hooks;
 use Closure;
 use Igorsgm\GitHooks\Contracts\CodeAnalyzerPreCommitHook;
 use Igorsgm\GitHooks\Git\ChangedFiles;
+use Igorsgm\GitHooks\Support\Config;
 
 class BladeFormatterPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements CodeAnalyzerPreCommitHook
 {
@@ -56,7 +57,7 @@ class BladeFormatterPreCommitHook extends BaseCodeAnalyzerPreCommitHook implemen
      */
     public function configParam(): string
     {
-        $bladeFormatterConfig = mb_rtrim((string) config('git-hooks.code_analyzers.blade_formatter.config'), '/');
+        $bladeFormatterConfig = mb_rtrim(Config::string('git-hooks.code_analyzers.blade_formatter.config'), '/');
         $this->validateConfigPath($bladeFormatterConfig);
 
         return empty($bladeFormatterConfig) ? '' : '--config='.$bladeFormatterConfig;

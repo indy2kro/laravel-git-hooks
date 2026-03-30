@@ -7,6 +7,7 @@ namespace Igorsgm\GitHooks\Console\Commands\Hooks;
 use Closure;
 use Igorsgm\GitHooks\Contracts\CodeAnalyzerPreCommitHook;
 use Igorsgm\GitHooks\Git\ChangedFiles;
+use Igorsgm\GitHooks\Support\Config;
 
 class LarastanPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements CodeAnalyzerPreCommitHook
 {
@@ -64,7 +65,7 @@ class LarastanPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements Cod
      */
     protected function configParam(): string
     {
-        $phpStanConfigFile = mb_rtrim((string) config('git-hooks.code_analyzers.larastan.config'), '/');
+        $phpStanConfigFile = mb_rtrim(Config::string('git-hooks.code_analyzers.larastan.config'), '/');
         $this->validateConfigPath($phpStanConfigFile);
 
         return empty($phpStanConfigFile) ? '' : '--configuration='.$phpStanConfigFile;
@@ -76,7 +77,7 @@ class LarastanPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements Cod
      */
     protected function additionalParams(): string
     {
-        $additionalParams = (string) config('git-hooks.code_analyzers.larastan.additional_params');
+        $additionalParams = Config::string('git-hooks.code_analyzers.larastan.additional_params');
 
         if (!empty($additionalParams)) {
             $additionalParams = (string) preg_replace(
