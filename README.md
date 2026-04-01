@@ -35,7 +35,7 @@
 
 ## 1️⃣ Installation
 
-**Laravel Version Support:** This package supports Laravel 11 and Laravel 12. Laravel 10 support has been deprecated.
+**Laravel Version Support:** This package supports Laravel 11, Laravel 12, and Laravel 13. Laravel 10 support has been deprecated.
 
 - You can install the package via composer:
 
@@ -368,6 +368,15 @@ composer qa              # Run all quality checks
 ```
 
 ## Testing
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for full details on running tests.
+
+```bash
+composer test                    # Unit + feature tests (fast, uses fake binaries)
+composer test:acceptance         # End-to-end tests against real tool binaries (slow)
+composer test:acceptance:php     # PHP tools only
+composer test:acceptance:node    # Node tools only
+```
 
 ## Changelog
 

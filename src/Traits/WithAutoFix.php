@@ -39,7 +39,8 @@ trait WithAutoFix
      */
     protected function rerunAnalyzer(string $filePath, array $params): Process
     {
-        $command = $this->dockerCommand($this->analyzerCommand().' '.$filePath);
+        $escapedFilePath = implode(' ', array_map('escapeshellarg', explode(' ', $filePath)));
+        $command = $this->dockerCommand($this->analyzerCommand().' '.$escapedFilePath);
         $process = $this->runCommands($command, $params);
 
         if (config('git-hooks.debug_commands')) {
@@ -135,7 +136,8 @@ trait WithAutoFix
      */
     private function attemptToFixFile(string $filePath, array $params): bool
     {
-        $fixerCommand = $this->dockerCommand($this->fixerCommand().' '.$filePath);
+        $escapedFilePath = implode(' ', array_map('escapeshellarg', explode(' ', $filePath)));
+        $fixerCommand = $this->dockerCommand($this->fixerCommand().' '.$escapedFilePath);
         $process = $this->runCommands($fixerCommand, $params);
 
         $this->outputDebugCommandIfEnabled($process);
@@ -145,7 +147,7 @@ trait WithAutoFix
         }
 
         if ($process->isSuccessful()) {
-            $this->runCommands('git add '.$filePath);
+            $this->runCommands('git add '.$escapedFilePath);
 
             return true;
         }

@@ -12,7 +12,7 @@ Laravel Git Hooks manages Git hooks for Laravel projects with pre-configured qua
 
 ```bash
 composer lint                           # Check code style with Laravel Pint
-composer analyze                        # Static analysis with PHPStan (level 8)
+composer analyze                        # Static analysis with PHPStan (level max)
 composer test                           # Run tests
 ```
 

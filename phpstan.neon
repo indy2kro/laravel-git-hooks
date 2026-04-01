@@ -1,5 +1,5 @@
 parameters:
     paths:
         - ./src
-    # The level 9 is the highest level (with check for mixed type)
+    # The level max is the highest level (with check for mixed type)
     level: max

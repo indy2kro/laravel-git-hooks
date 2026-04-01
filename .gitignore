@@ -7,7 +7,6 @@ yarn.lock
 .phpunit.result.cache
 .phpactor.json
 .claude/
-AGENTS.md
 temp/
 temp_test/
 temp_test2/

@@ -79,7 +79,7 @@ class GitHooks
         }
 
         file_put_contents($hookPath, $hookScript);
-        chmod($hookPath, 0777);
+        chmod($hookPath, 0755);
     }
 
     /**

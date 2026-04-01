@@ -73,7 +73,8 @@ trait WithFileAnalysis
     protected function analyzeFiles(array $filePaths): void
     {
         $filePath = implode(' ', $filePaths);
-        $command = $this->dockerCommand($this->analyzerCommand().' '.$filePath);
+        $escapedFilePath = implode(' ', array_map('escapeshellarg', $filePaths));
+        $command = $this->dockerCommand($this->analyzerCommand().' '.$escapedFilePath);
 
         $params = [
             'show-output' => config('git-hooks.debug_output'),
