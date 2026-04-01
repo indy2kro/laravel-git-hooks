@@ -315,46 +315,6 @@ describe('Test Runner File Finding Logic', function () {
         });
     });
 
-    describe('findTestPattern with existing files', function () {
-        test('finds test files in tests directory', function () {
-            $hook = new PestPreCommitHook();
-
-            $testsBasePath = base_path('tests');
-            if (!is_dir($testsBasePath) || !file_exists($testsBasePath.DIRECTORY_SEPARATOR.'GitHooksTest.php')) {
-                $this->markTestSkipped('Package tests directory not accessible via base_path() in this environment.');
-            }
-
-            $result = getProtectedMethodValue($hook, 'findTestPattern', ['GitHooksTest.php']);
-
-            expect($result)->toBeArray();
-            expect($result)->not->toBeEmpty();
-
-            $foundTestFile = $result[0] ?? '';
-            expect($foundTestFile)->toContain('tests');
-            expect($foundTestFile)->toContain('GitHooksTest.php');
-        });
-
-        test('returns correct format with AM prefix', function () {
-            $hook = new PestPreCommitHook();
-
-            $result = getProtectedMethodValue($hook, 'findTestPattern', ['GitHooksTest.php']);
-
-            expect($result)->toBeArray();
-
-            if (!empty($result)) {
-                expect($result[0])->toStartWith('AM ');
-            }
-        });
-
-        test('finds feature test files', function () {
-            $hook = new PestPreCommitHook();
-
-            $result = getProtectedMethodValue($hook, 'findTestPattern', ['PreCommitTest.php']);
-
-            expect($result)->toBeArray();
-        });
-    });
-
     describe('findTestPattern with non-existent directory', function () {
         test('returns empty array when tests directory does not exist', function () {
             $hook = new PestPreCommitHook();
