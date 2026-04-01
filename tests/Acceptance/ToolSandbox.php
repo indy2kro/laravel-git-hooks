@@ -154,10 +154,9 @@ final class ToolSandbox
             ));
         }
 
-        $composer = PHP_OS_FAMILY === 'Windows' ? 'composer' : 'composer';
         $cmd = sprintf(
             '%s require %s --working-dir=%s --no-interaction --no-progress --quiet 2>&1',
-            $composer,
+            'composer',
             escapeshellarg($this->package),
             escapeshellarg($this->sandboxDir)
         );

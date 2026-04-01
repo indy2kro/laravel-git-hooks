@@ -16,10 +16,6 @@ abstract class BaseTestRunnerPreCommitHook extends BaseCodeAnalyzerPreCommitHook
 {
     protected string $testPath;
 
-    protected string $testFileSuffix;
-
-    protected string $testFilePattern;
-
     abstract protected function getConfigPath(): string;
 
     abstract protected function getTestCommand(): string;

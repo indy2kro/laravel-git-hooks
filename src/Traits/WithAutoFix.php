@@ -39,7 +39,7 @@ trait WithAutoFix
      */
     protected function rerunAnalyzer(string $filePath, array $params): Process
     {
-        $escapedFilePath = implode(' ', array_map('escapeshellarg', explode(' ', $filePath)));
+        $escapedFilePath = implode(' ', array_map(escapeshellarg(...), explode(' ', $filePath)));
         $command = $this->dockerCommand($this->analyzerCommand().' '.$escapedFilePath);
         $process = $this->runCommands($command, $params);
 
@@ -136,7 +136,7 @@ trait WithAutoFix
      */
     private function attemptToFixFile(string $filePath, array $params): bool
     {
-        $escapedFilePath = implode(' ', array_map('escapeshellarg', explode(' ', $filePath)));
+        $escapedFilePath = implode(' ', array_map(escapeshellarg(...), explode(' ', $filePath)));
         $fixerCommand = $this->dockerCommand($this->fixerCommand().' '.$escapedFilePath);
         $process = $this->runCommands($fixerCommand, $params);
 

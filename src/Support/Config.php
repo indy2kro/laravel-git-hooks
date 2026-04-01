@@ -22,7 +22,17 @@ class Config
 
     public static function bool(string $key, bool $default = false): bool
     {
-        return (bool) config($key, $default);
+        $value = config($key, $default);
+
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        // filter_var correctly maps strings like "false"/"0"/"off" to false,
+        // which a plain (bool) cast cannot do (any non-empty string is truthy).
+        $filtered = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+        return $filtered ?? $default;
     }
 
     public static function int(string $key, int $default = 0): int

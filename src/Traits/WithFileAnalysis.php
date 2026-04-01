@@ -73,7 +73,7 @@ trait WithFileAnalysis
     protected function analyzeFiles(array $filePaths): void
     {
         $filePath = implode(' ', $filePaths);
-        $escapedFilePath = implode(' ', array_map('escapeshellarg', $filePaths));
+        $escapedFilePath = implode(' ', array_map(escapeshellarg(...), $filePaths));
         $command = $this->dockerCommand($this->analyzerCommand().' '.$escapedFilePath);
 
         $params = [

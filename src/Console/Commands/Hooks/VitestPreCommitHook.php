@@ -9,11 +9,8 @@ use Igorsgm\GitHooks\Contracts\CodeAnalyzerPreCommitHook;
 use Igorsgm\GitHooks\Git\ChangedFile;
 use Igorsgm\GitHooks\Git\ChangedFiles;
 use Igorsgm\GitHooks\Support\Config;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use SplFileInfo;
 
-class VitestPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements CodeAnalyzerPreCommitHook
+class VitestPreCommitHook extends BaseTestRunnerPreCommitHook implements CodeAnalyzerPreCommitHook
 {
     protected string $name = 'Vitest';
 
@@ -56,6 +53,16 @@ class VitestPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements CodeA
         ));
     }
 
+    protected function getConfigPath(): string
+    {
+        return 'git-hooks.code_analyzers.vitest';
+    }
+
+    protected function getTestCommand(): string
+    {
+        return 'run';
+    }
+
     protected function getAdditionalParams(): string
     {
         $additionalParams = Config::string('git-hooks.code_analyzers.vitest.additional_params');
@@ -68,40 +75,14 @@ class VitestPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements CodeA
     }
 
     /**
+     * Vitest overrides findTestFiles() directly so this is never called.
+     * It satisfies the abstract contract of BaseTestRunnerPreCommitHook.
+     *
      * @return array<int, string>
      */
-    protected function findTestFilesForChangedFiles(ChangedFiles $files): array
+    protected function getTestFilePatterns(string $withoutExtension): array
     {
-        $testFiles = [];
-        $commitFiles = $files->getStaged();
-
-        /** @var ChangedFile $file */
-        foreach ($commitFiles as $file) {
-            if ($this->shouldSkipFile($file)) {
-                continue;
-            }
-
-            $found = $this->findTestFiles($file->getFilePath());
-            $testFiles = array_merge($testFiles, $found);
-        }
-
-        return array_unique($testFiles);
-    }
-
-    protected function shouldSkipFile(ChangedFile $file): bool
-    {
-        $filePath = $file->getFilePath();
-
-        if (str_contains($filePath, $this->testPath)) {
-            return true;
-        }
-
-        $extension = pathinfo($filePath, PATHINFO_EXTENSION);
-        if (!in_array($extension, ['js', 'jsx', 'ts', 'tsx', 'vue'], true)) {
-            return true;
-        }
-
-        return false;
+        return [];
     }
 
     /**
@@ -135,38 +116,19 @@ class VitestPreCommitHook extends BaseCodeAnalyzerPreCommitHook implements CodeA
         return pathinfo($file, PATHINFO_EXTENSION);
     }
 
-    /**
-     * @return array<int, string>
-     */
-    protected function findTestPattern(string $pattern): array
+    protected function shouldSkipFile(ChangedFile $file): bool
     {
-        $testFiles = [];
-        $testsBasePath = base_path($this->testPath);
+        $filePath = $file->getFilePath();
 
-        if (!is_dir($testsBasePath)) {
-            return $testFiles;
+        if (str_contains($filePath, $this->testPath)) {
+            return true;
         }
 
-        $directory = new RecursiveDirectoryIterator($testsBasePath);
-        $iterator = new RecursiveIteratorIterator($directory);
-
-        /** @var SplFileInfo $info */
-        foreach ($iterator as $info) {
-            if (!$info->isFile()) {
-                continue;
-            }
-
-            if ($info->getFilename() === $pattern) {
-                $relativePath = $info->getPathname();
-
-                if (str_starts_with($relativePath, base_path())) {
-                    $relativePath = mb_substr($relativePath, mb_strlen(base_path()) + 1);
-                }
-
-                $testFiles[] = 'AM '.$relativePath;
-            }
+        $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+        if (!in_array($extension, ['js', 'jsx', 'ts', 'tsx', 'vue'], true)) {
+            return true;
         }
 
-        return $testFiles;
+        return false;
     }
 }

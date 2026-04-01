@@ -6,7 +6,6 @@ use Igorsgm\GitHooks\Console\Commands\Hooks\LarastanPreCommitHook;
 use Igorsgm\GitHooks\Facades\GitHooks;
 
 beforeEach(function () {
-    $this->gitInit();
     $this->initializeTempDirectory(base_path('temp'));
     $this->config->set('git-hooks.validate_paths', false);
 });

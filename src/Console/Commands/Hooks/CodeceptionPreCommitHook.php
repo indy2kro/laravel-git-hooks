@@ -13,10 +13,6 @@ class CodeceptionPreCommitHook extends BaseTestRunnerPreCommitHook
 
     protected string $testPath = 'tests';
 
-    protected string $testFileSuffix = 'Cest';
-
-    protected string $testFilePattern = '/(Cest|Test|Cept)\.php$/';
-
     protected function getConfigPath(): string
     {
         return 'git-hooks.code_analyzers.codeception';

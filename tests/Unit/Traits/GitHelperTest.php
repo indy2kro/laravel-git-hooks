@@ -10,6 +10,14 @@ beforeEach(function () {
     $this->initializeGitAsTempDirectory();
 });
 
+afterEach(function () {
+    $null = PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null';
+    shell_exec("git merge --abort > $null 2>&1");
+    shell_exec("git checkout HEAD > $null 2>&1");
+    shell_exec("git branch -D main test-branch > $null 2>&1");
+    $this->deleteTempDirectory();
+});
+
 test('Gets list of changed files', function () {
     chdir(__DIR__);
 

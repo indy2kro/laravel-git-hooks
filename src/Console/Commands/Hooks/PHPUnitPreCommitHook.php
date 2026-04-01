@@ -12,10 +12,6 @@ class PHPUnitPreCommitHook extends BaseTestRunnerPreCommitHook
 
     protected string $testPath = 'tests';
 
-    protected string $testFileSuffix = 'Test';
-
-    protected string $testFilePattern = '/Test\.php$/';
-
     protected function getConfigPath(): string
     {
         return 'git-hooks.code_analyzers.phpunit';

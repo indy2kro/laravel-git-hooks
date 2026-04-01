@@ -211,7 +211,7 @@ abstract class BaseCodeAnalyzerPreCommitHook implements CodeAnalyzerPreCommitHoo
                 continue;
             }
 
-            $escapedFilePaths = implode(' ', array_map('escapeshellarg', $filePaths));
+            $escapedFilePaths = implode(' ', array_map(escapeshellarg(...), $filePaths));
             $filePath = implode(' ', $filePaths);
             $command = $this->dockerCommand($this->analyzerCommand().' '.$escapedFilePaths);
 
