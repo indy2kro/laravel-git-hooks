@@ -37,7 +37,7 @@ test('Pest runner passes when found test file has passing tests', function () us
         'path' => $pestBin,
         'run_in_docker' => false,
         'docker_container' => '',
-        'additional_params' => '--no-coverage --bootstrap='.$projectRoot.'/vendor/autoload.php',
+        'additional_params' => '--no-coverage --no-configuration --bootstrap='.$projectRoot.'/vendor/autoload.php',
     ]);
     $this->config->set('git-hooks.pre-commit', [PestPreCommitHook::class]);
 
@@ -64,7 +64,7 @@ test('Pest runner fails when found test file has failing tests', function () use
         'path' => $pestBin,
         'run_in_docker' => false,
         'docker_container' => '',
-        'additional_params' => '--no-coverage --bootstrap='.$projectRoot.'/vendor/autoload.php',
+        'additional_params' => '--no-coverage --no-configuration --bootstrap='.$projectRoot.'/vendor/autoload.php',
     ]);
     $this->config->set('git-hooks.pre-commit', [PestPreCommitHook::class]);
 
