@@ -44,10 +44,13 @@ test('Pest runner passes when found test file has passing tests', function () us
     $this->makeTempFile('SomeClass.php', '<?php class SomeClass {}');
 
     File::makeDirectory(base_path('tests'), 0755, true, true);
-    file_put_contents(
-        base_path('tests/SomeClassTest.php'),
-        "<?php\ntest('SomeClass works', fn () => expect(1 + 1)->toBe(2));\n"
-    );
+    file_put_contents(base_path('tests/SomeClassTest.php'), <<<'PHP'
+<?php
+use PHPUnit\Framework\TestCase;
+class SomeClassTest extends TestCase {
+    public function testSomeClassWorks(): void { $this->assertTrue(true); }
+}
+PHP);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/SomeClass.php');
@@ -71,10 +74,13 @@ test('Pest runner fails when found test file has failing tests', function () use
     $this->makeTempFile('SomeClass.php', '<?php class SomeClass {}');
 
     File::makeDirectory(base_path('tests'), 0755, true, true);
-    file_put_contents(
-        base_path('tests/SomeClassTest.php'),
-        "<?php\ntest('SomeClass is broken', fn () => expect(true)->toBeFalse());\n"
-    );
+    file_put_contents(base_path('tests/SomeClassTest.php'), <<<'PHP'
+<?php
+use PHPUnit\Framework\TestCase;
+class SomeClassTest extends TestCase {
+    public function testSomeClassIsBroken(): void { $this->assertTrue(false); }
+}
+PHP);
 
     GitHooks::shouldReceive('isMergeInProgress')->andReturn(false);
     GitHooks::shouldReceive('getListOfChangedFiles')->andReturn('AM temp/SomeClass.php');
