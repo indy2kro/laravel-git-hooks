@@ -16,7 +16,7 @@ There are three distinct layers of tests, each with a different purpose and cost
 
 **Unit tests** use mocks exclusively and never touch the filesystem or real binaries.
 
-**Feature tests** mock only the git interaction (`GitHooks::shouldReceive`) but otherwise run the full hook pipeline including **real tool binaries** from `vendor/bin/`. Tests for Pint, Larastan, Rector, and PHP CS Fixer each spin up the actual binary against temporary fixture files, so they can take 1–5 seconds each. These binaries are already installed as dev dependencies — no separate install step is needed.
+**Feature tests** mock only the git interaction (`GitHooks::shouldReceive`) and use **fake PHP binaries** (in `tests/Fixtures/bin/`) instead of real tool binaries. The fake binaries exit with the correct code based on the command flags passed to them (`--test` for Pint, `--dry-run` for Rector, `check`/`fix` for PHP-CS-Fixer), so the hook's analysis/fix/rerun logic is fully exercised without running the actual tools. Most tests complete in under 1 second.
 
 **Acceptance tests** go one step further: they install each tool in its own isolated sandbox directory (outside the project) via `ToolSandbox`, and exercise the full hook end-to-end including auto-fix flows and non-matching file extension skipping. They are intentionally excluded from the normal `composer test` run.
 
