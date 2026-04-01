@@ -4,7 +4,9 @@
     "tests/TestCase.php",
     "tests/temp",
     "temp",
-    "tests/Fixtures/temp"
+    "tests/Fixtures/temp",
+    "tests/Fixtures/ClassWithFixableIssues.php",
+    "tests/Fixtures/ClassWithRectorIssues.php"
   ],
   "rules": {
     "array_push": true,
