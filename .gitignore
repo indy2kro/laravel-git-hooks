@@ -8,3 +8,7 @@ yarn.lock
 .phpactor.json
 .claude/
 AGENTS.md
+temp/
+temp_test/
+temp_test2/
+testdir/
