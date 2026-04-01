@@ -10,13 +10,15 @@ There are three distinct layers of tests, each with a different purpose and cost
 
 | Layer | Location | Command | Speed | Runs in CI |
 |---|---|---|---|---|
-| Unit | `tests/Unit/` | `composer test` | Fast | Every push/PR |
-| Feature (integration) | `tests/Features/` | `composer test` | Fast | Every push/PR |
+| Unit | `tests/Unit/` | `composer test` | Fast (~0.01s/test) | Every push/PR |
+| Feature (integration) | `tests/Features/` | `composer test` | Mixed | Every push/PR |
 | Acceptance (end-to-end) | `tests/Acceptance/` | `composer test:acceptance` | Slow | Weekly + manual |
 
-Unit and feature tests run inside the Pest/Testbench sandbox and use mocks. They never invoke real tool binaries.
+**Unit tests** use mocks exclusively and never touch the filesystem or real binaries.
 
-Acceptance tests exercise real tool binaries (Pint, Larastan, ESLint, Prettier, etc.) end-to-end against staged files and real hook commands. They are intentionally excluded from the normal `composer test` run.
+**Feature tests** mock only the git interaction (`GitHooks::shouldReceive`) but otherwise run the full hook pipeline including **real tool binaries** from `vendor/bin/`. Tests for Pint, Larastan, Rector, and PHP CS Fixer each spin up the actual binary against temporary fixture files, so they can take 1–5 seconds each. These binaries are already installed as dev dependencies — no separate install step is needed.
+
+**Acceptance tests** go one step further: they install each tool in its own isolated sandbox directory (outside the project) via `ToolSandbox`, and exercise the full hook end-to-end including auto-fix flows and non-matching file extension skipping. They are intentionally excluded from the normal `composer test` run.
 
 ---
 
