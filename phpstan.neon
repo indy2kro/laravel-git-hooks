@@ -5,3 +5,5 @@ parameters:
     level: max
     stubFiles:
         - phpstan-stubs.php
+    scanFiles:
+        - src/Support/functions.php
