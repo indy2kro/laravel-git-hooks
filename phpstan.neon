@@ -3,3 +3,5 @@ parameters:
         - ./src
     # The level max is the highest level (with check for mixed type)
     level: max
+    stubFiles:
+        - phpstan-stubs.php
