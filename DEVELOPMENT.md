@@ -26,7 +26,7 @@ There are three distinct layers of tests, each with a different purpose and cost
 
 ### Prerequisites
 
-- PHP 8.2+
+- PHP 8.3+
 - Composer
 - Node.js / npm (for Node tool tests)
 - A global `git` installation with a configured user (`git config --global user.name` / `user.email`)
@@ -99,7 +99,7 @@ This is useful after merging a change that touches acceptance tests, or when inv
 
 | Job | Matrix |
 |---|---|
-| `acceptance-php` | PHP 8.2, 8.3, 8.4, 8.5 |
+| `acceptance-php` | PHP 8.3, 8.4, 8.5 |
 | `acceptance-node` | Node 20, 22, 24 (fixed PHP 8.4) |
 
 `fail-fast: false` is set so every matrix cell always runs to completion even if one fails — making it easier to spot whether a failure is version-specific.
@@ -119,7 +119,7 @@ On a cache hit the tool installation step is skipped entirely. The cache is inva
 
 The `Laravel Git Hooks` workflow (`.github/workflows/main.yml`) runs on every push/PR to `master`, `main`, and `develop`, and also on a daily schedule.
 
-**Matrix:** PHP 8.2–8.5 × Laravel 11–13 (some combinations excluded — see the workflow file).
+**Matrix:** PHP 8.3–8.5 × Laravel 12–13.
 
 Each cell installs the correct combination of `laravel/framework`, `orchestra/testbench`, `pestphp/pest`, and `pestphp/pest-plugin-laravel`, then runs:
 

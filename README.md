@@ -35,7 +35,7 @@
 
 ## 1️⃣ Installation
 
-**Laravel Version Support:** This package supports Laravel 11, Laravel 12, and Laravel 13. Laravel 10 support has been deprecated.
+**Laravel Version Support:** This package supports Laravel 12 and Laravel 13. Laravel 11 and older are no longer supported.
 
 - You can install the package via composer:
 

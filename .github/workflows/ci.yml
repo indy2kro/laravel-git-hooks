@@ -20,11 +20,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ["8.2", "8.3", "8.4", "8.5"]
-        laravel: ["11", "12", "13"]
-        exclude:
-          - php: "8.2"
-            laravel: "13"
+        php: ["8.3", "8.4", "8.5"]
+        laravel: ["12", "13"]
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
 
@@ -47,15 +44,6 @@ jobs:
         shell: bash
         run: |
           case "${{ matrix.laravel }}" in
-            11)
-              echo "laravel_constraint=11.*" >> "$GITHUB_OUTPUT"
-              echo "testbench_constraint=9.*" >> "$GITHUB_OUTPUT"
-              echo "testbench_key=9" >> "$GITHUB_OUTPUT"
-              echo "pest_constraint=^3.0" >> "$GITHUB_OUTPUT"
-              echo "pest_key=3" >> "$GITHUB_OUTPUT"
-              echo "plugin_constraint=^3.0" >> "$GITHUB_OUTPUT"
-              echo "plugin_key=3" >> "$GITHUB_OUTPUT"
-              ;;
             12)
               echo "laravel_constraint=12.*" >> "$GITHUB_OUTPUT"
               echo "testbench_constraint=10.*" >> "$GITHUB_OUTPUT"

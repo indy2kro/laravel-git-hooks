@@ -121,7 +121,7 @@ End-to-end tests in `tests/Acceptance/` exercise real tool binaries. Each tool's
 - **Multiple files** staged in a single run
 - **Non-matching files alongside** matching ones
 
-They run automatically every Sunday via `.github/workflows/acceptance.yml` across a PHP 8.2–8.5 × Node 20–24 matrix, and can be triggered manually from the GitHub Actions tab.
+They run automatically every Sunday via `.github/workflows/acceptance.yml` across a PHP 8.3–8.5 × Node 20–24 matrix, and can be triggered manually from the GitHub Actions tab.
 
 ## Key Concepts
 

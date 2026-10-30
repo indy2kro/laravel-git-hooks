@@ -10,7 +10,7 @@ The acceptance workflow runs two separate jobs to avoid unnecessary cross-produc
 
 | Job | PHP version | Node version | Tests run |
 |-----|-------------|--------------|-----------|
-| `acceptance-php` | 8.2, 8.3, 8.4, 8.5 | fixed (none needed) | PHP tool tests |
+| `acceptance-php` | 8.3, 8.4, 8.5 | fixed (none needed) | PHP tool tests |
 | `acceptance-node` | fixed (8.4) | 20, 22, 24 | Node tool tests |
 
 This gives **7 jobs** instead of the naive 4×3=12 cross-product matrix.
