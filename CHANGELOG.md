@@ -5,6 +5,12 @@ All notable changes to `laravel-git-hooks` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-10-30
+
+### Changed
+- **Breaking:** Requires Laravel 12+ (dropped Laravel 11 support, which is EOL)
+- **Breaking:** Requires PHP 8.3+ (dropped PHP 8.2 support)
+
 ## [2.0.0] - 2024-09-24
 
 ### Added
